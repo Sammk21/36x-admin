@@ -2,19 +2,21 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-const topImageLightsOn = "/images/top-off.png";
-const topImageLightsOff = "/images/top-on.jpg";
+const topImage = "/images/top-off.png";
+const topImageOverlay = "/images/top-on.jpg";
 const bgTileImage = "/images/bottom.jpg";
 
 interface PageShellProps {
-
+  topImage?: string;
+  topImageOverlay?: string;
   topImageAlt?: string;
   children?: React.ReactNode;
   className?: string;
 }
 
 export default function HomePageShell({
-
+  topImage = "/images/top-off.png",
+  topImageOverlay = "/images/top-on.jpg",
   children,
   className = "",
   topImageAlt = "",
@@ -31,7 +33,6 @@ export default function HomePageShell({
       await delay(800);
       if (cancelled) return;
 
-  
       const flickers: [boolean, number][] = [
         [true, 900],
         [false, 60],
@@ -44,7 +45,7 @@ export default function HomePageShell({
         [true, 300],
         [true, 70],
         [false, 100],
-     
+
         [false, 0],
       ];
 
@@ -75,7 +76,7 @@ export default function HomePageShell({
       <div className="absolute top-0 left-0 w-full">
         {/* Lights ON */}
         <Image
-          src={topImageLightsOn}
+          src={topImage}
           alt={topImageAlt}
           width={0}
           height={0}
@@ -88,7 +89,7 @@ export default function HomePageShell({
 
         {/* Lights OFF */}
         <Image
-          src={topImageLightsOff}
+          src={topImageOverlay}
           alt={topImageAlt}
           width={0}
           height={0}

@@ -1,5 +1,5 @@
 import ArtistCollaborations from "@/components/home/artistCollab";
-import FeedStackSection from "@/components/home/feed";
+import InstagramFeedStackSection from "@/components/home/feed";
 import HomeHero from "@/components/home/hero";
 import HomePageShell from "@/components/home/HomePageShell";
 import CollectionSection from "@/components/home/collections";
@@ -58,18 +58,8 @@ export default async function Home(props: {
           images={images}
           className="my-0"
         />
-        {/* <Masonry
-          items={items}
-          ease="power3.out"
-          duration={0.6}
-          stagger={0.05}
-          animateFrom="bottom"
-          scaleOnHover
-          hoverScale={0.95}
-          blurToFocus
-          colorShiftOnHover={false}
-        /> */}
-        <FeedStackSection />
+      
+        <InstagramFeedStackSection />
       </HomePageShell>
     </>
   );
