@@ -192,17 +192,24 @@ const CATEGORIES_LISTING_QUERY = {
 
 const COLLECTIONS_LISTING_QUERY = {
   populate: {
-    hero: { populate: { buttons: true } },
-    pageShell: { populate: "*" },
+    Hero: {
+      populate: { bannerImage: true },
+    },
+    pageShell: true,
   },
 }
 
 const COLLECTION_TIMELINE_QUERY = {
   populate: {
-    sectionIntro: { populate: "*" },
+    sectionIntro: true,
     collectionTimeline: {
       populate: {
-        cards: { populate: { image: true } },
+        product_collections: {
+          populate: {
+            cover_image: true,
+            comic_strip_image: true,
+          },
+        },
       },
     },
   },

@@ -135,18 +135,10 @@ export type NavItem = {
 // Collection content types
 // ---------------------------------------------------------------------------
 
-export type CollectionTimelineCard = {
-  id: number
-  title: string
-  subtitle: string | null
-  description: string | null
-  image: StrapiMedia | null
-}
-
 export type CollectionTimeline = {
   id: number
-  title: string | null
-  cards: CollectionTimelineCard[]
+  // The actual chapter data lives on each linked product collection
+  product_collections: StrapiProductCollection[]
 }
 
 // ---------------------------------------------------------------------------
@@ -262,13 +254,48 @@ export type StrapiSocialFeedPost = {
 // Single types (page content)
 // ---------------------------------------------------------------------------
 
-export type StrapiHomePage = {
-  // PageShell
+export type StrapiPageShell = {
+  id: number
   topImage: StrapiMedia | null
   topImageOverlay: StrapiMedia | null
   bgTileImage: StrapiMedia | null
-  // Sections (dynamic zone — fields vary per component type)
-  sections: unknown[]
+}
+
+export type StrapiFeedSection = {
+  id: number
+  title: string | null
+  description: string | null
+  postLink: string | null
+  media: StrapiMedia | null
+  button: HeroButton | null
+  sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
+}
+
+export type StrapiHomePage = {
+  PageShell: StrapiPageShell | null
+  HomeHero: HeroComponent | null
+  collection: {
+    id: number
+    sectionIntro: { id: number; title: string | null; subtitle: string | null } | null
+    product_collections: StrapiProductCollection[]
+  } | null
+  artistCollab: {
+    id: number
+    sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
+    artist_collaborations: StrapiArtistCollaboration[]
+  } | null
+  masonry_images: {
+    id: number
+    image: StrapiMedia
+    alt: string | null
+    routeTo: "collections" | "categories" | null
+  } | null
+  category: {
+    id: number
+    sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
+    product_categories: StrapiProductCategory[]
+  } | null
+  feedSection: StrapiFeedSection[]
 }
 
 export type StrapiGlobalNavigation = {
@@ -284,12 +311,18 @@ export type StrapiCategoriesListingPage = {
   product_category: StrapiProductCategory | null
 }
 
+export type ListingHeroComponent = {
+  id: number
+  bannerImage: StrapiMedia[]
+  overlayImage: string | null
+}
+
 export type StrapiCollectionsListingPage = {
-  hero: HeroComponent[]
-  pageShell: unknown[]
+  Hero: ListingHeroComponent | null
+  pageShell: { id: number; bgTileImage: string | null }[]
 }
 
 export type StrapiCollectionTimelinePage = {
-  sectionIntro: unknown[]
+  sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
   collectionTimeline: CollectionTimeline[]
 }

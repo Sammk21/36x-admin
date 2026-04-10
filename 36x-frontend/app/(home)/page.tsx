@@ -18,11 +18,11 @@ export default async function Home() {
 
   // Resolve Strapi media to absolute URLs, fall back to local assets
   const topImageUrl =
-    strapiImage(homePage.topImage) ?? "/images/top-off.png";
+    strapiImage(homePage.PageShell?.topImage) ?? "/images/top-off.png";
   const topImageOverlayUrl =
-    strapiImage(homePage.topImageOverlay) ?? "/images/top-on.jpg";
+    strapiImage(homePage.PageShell?.topImageOverlay) ?? "/images/top-on.jpg";
   const bgTileImageUrl =
-    strapiImage(homePage.bgTileImage) ?? "/images/bottom.jpg";
+    strapiImage(homePage.PageShell?.bgTileImage) ?? "/images/bottom.jpg";
 
 
     console.log(homePage, "homePage")
