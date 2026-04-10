@@ -1,3 +1,4 @@
+import qs from "qs"
 import type {
   StrapiListResponse,
   StrapiSingleResponse,
@@ -21,14 +22,14 @@ import type {
 const STRAPI_URL =
   process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337"
 
-const STRAPI_TOKEN = process.env.NEXT_PUBLIC_STRAPI_TOKEN ?? ""
+const STRAPI_TOKEN = process.env.STRAPI_TOKEN ?? ""
 
 // ---------------------------------------------------------------------------
 // Image helper
 // ---------------------------------------------------------------------------
 
 /**
- * Resolves a Strapi media URL to an absolute URL.
+ * Resolves a Strapi media object to an absolute URL.
  * Strapi v5 self-hosted returns relative paths like `/uploads/image.jpg`.
  */
 export function strapiImage(
@@ -48,37 +49,25 @@ export function strapiImage(
 // Core fetch helper
 // ---------------------------------------------------------------------------
 
-type FetchOptions = {
-  /** Next.js cache/revalidate options */
-  next?: NextFetchRequestConfig
-}
-
 async function strapiRequest<T>(
   path: string,
-  params: Record<string, string> = {},
-  options: FetchOptions = {}
+  query: object = {},
+  next?: NextFetchRequestConfig
 ): Promise<T> {
-  const url = new URL(`${STRAPI_URL}/api${path}`)
-
-  for (const [key, value] of Object.entries(params)) {
-    url.searchParams.set(key, value)
-  }
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  }
-  if (STRAPI_TOKEN) {
-    headers["Authorization"] = `Bearer ${STRAPI_TOKEN}`
-  }
-
-  const res = await fetch(url.toString(), {
-    headers,
-    next: options.next,
+  const queryString = qs.stringify(query, {
+    encodeValuesOnly: true, // keeps bracket notation readable, e.g. filters[x][$eq]
   })
+
+  const url = `${STRAPI_URL}/api${path}${queryString ? `?${queryString}` : ""}`
+
+  const headers: HeadersInit = { "Content-Type": "application/json" }
+  if (STRAPI_TOKEN) headers["Authorization"] = `Bearer ${STRAPI_TOKEN}`
+
+  const res = await fetch(url, { headers, next })
 
   if (!res.ok) {
     throw new Error(
-      `Strapi request failed: ${res.status} ${res.statusText} — ${url.toString()}`
+      `Strapi ${res.status} ${res.statusText} — ${url}`
     )
   }
 
@@ -86,38 +75,137 @@ async function strapiRequest<T>(
 }
 
 // ---------------------------------------------------------------------------
-// Populate builders
+// Pre-built populate queries
 // ---------------------------------------------------------------------------
 
-/** Default populate for a product with all rich content */
-const PRODUCT_POPULATE = {
-  "populate[images]": "true",
-  "populate[thumbnail]": "true",
-  "populate[gallery_video]": "true",
-  "populate[gallery_images][populate][image]": "true",
-  "populate[concept_slides][populate][image]": "true",
-  "populate[review_sentiment_bars]": "true",
-  "populate[pairings][populate][item_a_image]": "true",
-  "populate[pairings][populate][item_b_image]": "true",
-  "populate[pairings][populate][result_image]": "true",
-  "populate[artist_collaborations][populate][cover_image]": "true",
-  "populate[variants][populate][images]": "true",
-  "populate[variants][populate][thumbnail]": "true",
-  "populate[variants][populate][option_values]": "true",
-  "populate[options][populate][values]": "true",
+const PRODUCT_QUERY = {
+  populate: {
+    images: true,
+    thumbnail: true,
+    gallery_video: true,
+    gallery_images: { populate: { image: true } },
+    concept_slides: { populate: { image: true } },
+    review_sentiment_bars: true,
+    pairings: {
+      populate: {
+        item_a_image: true,
+        item_b_image: true,
+        result_image: true,
+      },
+    },
+    artist_collaborations: { populate: { cover_image: true } },
+    variants: {
+      populate: {
+        images: true,
+        thumbnail: true,
+        option_values: true,
+      },
+    },
+    options: { populate: { values: true } },
+  },
 }
 
-/** Default populate for a collection with all editorial fields */
-const COLLECTION_POPULATE = {
-  "populate[cover_image]": "true",
-  "populate[comic_strip_image]": "true",
+const COLLECTION_QUERY = {
+  populate: {
+    cover_image: true,
+    comic_strip_image: true,
+  },
 }
 
-/** Default populate for an artist collaboration */
-const ARTIST_POPULATE = {
-  "populate[cover_image]": "true",
-  "populate[products][populate][thumbnail]": "true",
-  "populate[products][populate][images]": "true",
+const ARTIST_QUERY = {
+  populate: {
+    cover_image: true,
+    products: {
+      populate: {
+        thumbnail: true,
+        images: true,
+      },
+    },
+  },
+}
+
+const SOCIAL_FEED_QUERY = {
+  populate: { image: true },
+  sort: ["display_order:asc"],
+}
+
+const HOME_PAGE_QUERY = {
+  populate: {
+    PageShell: {
+      populate: {
+        topImage: true,
+        topImageOverlay: true,
+        bgTileImage: true,
+      },
+    },
+    HomeHero: {
+      populate: { buttons: true },
+    },
+    collection: {
+      populate: {
+        sectionIntro: true,
+        product_collections: true,
+      },
+    },
+    artistCollab: {
+      populate: {
+        sectionIntro: true,
+        artist_collaborations: { populate: { cover_image: true } },
+      },
+    },
+    masonry_images: { populate: { image: true } },
+    category: {
+      populate: {
+        sectionIntro: true,
+        product_categories: true,
+      },
+    },
+    feedSection: {
+      populate: {
+        sectionIntro: true,
+        media: true,
+        button: true,
+      },
+    },
+  },
+}
+
+const NAVIGATION_QUERY = {
+  populate: {
+    logo: true,
+    nav_items: {
+      populate: {
+        dropdown_sections: {
+          populate: { items: true },
+        },
+      },
+    },
+  },
+}
+
+const CATEGORIES_LISTING_QUERY = {
+  populate: {
+    hero: { populate: { buttons: true } },
+    product_category: true,
+  },
+}
+
+const COLLECTIONS_LISTING_QUERY = {
+  populate: {
+    hero: { populate: { buttons: true } },
+    pageShell: { populate: "*" },
+  },
+}
+
+const COLLECTION_TIMELINE_QUERY = {
+  populate: {
+    sectionIntro: { populate: "*" },
+    collectionTimeline: {
+      populate: {
+        cards: { populate: { image: true } },
+      },
+    },
+  },
 }
 
 // ---------------------------------------------------------------------------
@@ -130,22 +218,20 @@ type ProductFindParams = {
   next?: NextFetchRequestConfig
 }
 
-async function findProducts(
-  params: ProductFindParams = {}
-): Promise<StrapiProduct[]> {
-  const query: Record<string, string> = { ...PRODUCT_POPULATE }
+async function findProducts(params: ProductFindParams = {}): Promise<StrapiProduct[]> {
+  const query: Record<string, unknown> = { ...PRODUCT_QUERY }
 
-  if (params.medusaId) {
-    query["filters[medusaId][$eq]"] = params.medusaId
-  }
-  if (params.handle) {
-    query["filters[handle][$eq]"] = params.handle
+  if (params.medusaId || params.handle) {
+    query.filters = {
+      ...(params.medusaId && { medusaId: { $eq: params.medusaId } }),
+      ...(params.handle && { handle: { $eq: params.handle } }),
+    }
   }
 
   const res = await strapiRequest<StrapiListResponse<StrapiProduct>>(
     "/products",
     query,
-    { next: params.next }
+    params.next
   )
   return res.data
 }
@@ -168,22 +254,20 @@ type CategoryFindParams = {
   next?: NextFetchRequestConfig
 }
 
-async function findCategories(
-  params: CategoryFindParams = {}
-): Promise<StrapiProductCategory[]> {
-  const query: Record<string, string> = {}
+async function findCategories(params: CategoryFindParams = {}): Promise<StrapiProductCategory[]> {
+  const query: Record<string, unknown> = {}
 
-  if (params.medusaId) {
-    query["filters[medusaId][$eq]"] = params.medusaId
-  }
-  if (params.handle) {
-    query["filters[handle][$eq]"] = params.handle
+  if (params.medusaId || params.handle) {
+    query.filters = {
+      ...(params.medusaId && { medusaId: { $eq: params.medusaId } }),
+      ...(params.handle && { handle: { $eq: params.handle } }),
+    }
   }
 
   const res = await strapiRequest<StrapiListResponse<StrapiProductCategory>>(
     "/product-categories",
     query,
-    { next: params.next }
+    params.next
   )
   return res.data
 }
@@ -206,22 +290,20 @@ type CollectionFindParams = {
   next?: NextFetchRequestConfig
 }
 
-async function findCollections(
-  params: CollectionFindParams = {}
-): Promise<StrapiProductCollection[]> {
-  const query: Record<string, string> = { ...COLLECTION_POPULATE }
+async function findCollections(params: CollectionFindParams = {}): Promise<StrapiProductCollection[]> {
+  const query: Record<string, unknown> = { ...COLLECTION_QUERY }
 
-  if (params.medusaId) {
-    query["filters[medusaId][$eq]"] = params.medusaId
-  }
-  if (params.handle) {
-    query["filters[handle][$eq]"] = params.handle
+  if (params.medusaId || params.handle) {
+    query.filters = {
+      ...(params.medusaId && { medusaId: { $eq: params.medusaId } }),
+      ...(params.handle && { handle: { $eq: params.handle } }),
+    }
   }
 
   const res = await strapiRequest<StrapiListResponse<StrapiProductCollection>>(
     "/product-collections",
     query,
-    { next: params.next }
+    params.next
   )
   return res.data
 }
@@ -244,22 +326,22 @@ type ArtistFindParams = {
   next?: NextFetchRequestConfig
 }
 
-async function findArtists(
-  params: ArtistFindParams = {}
-): Promise<StrapiArtistCollaboration[]> {
-  const query: Record<string, string> = { ...ARTIST_POPULATE }
+async function findArtists(params: ArtistFindParams = {}): Promise<StrapiArtistCollaboration[]> {
+  const query: Record<string, unknown> = { ...ARTIST_QUERY }
 
   if (params.handle) {
-    query["filters[handle][$eq]"] = params.handle
+    query.filters = { handle: { $eq: params.handle } }
   }
   if (params.homepageOnly) {
-    query["filters[show_on_homepage][$eq]"] = "true"
-    query["sort"] = "homepage_order:asc"
+    query.filters = { ...((query.filters as object) ?? {}), show_on_homepage: { $eq: true } }
+    query.sort = ["homepage_order:asc"]
   }
 
-  const res = await strapiRequest<
-    StrapiListResponse<StrapiArtistCollaboration>
-  >("/artist-collaborations", query, { next: params.next })
+  const res = await strapiRequest<StrapiListResponse<StrapiArtistCollaboration>>(
+    "/artist-collaborations",
+    query,
+    params.next
+  )
   return res.data
 }
 
@@ -281,25 +363,20 @@ type SocialFeedParams = {
   next?: NextFetchRequestConfig
 }
 
-async function findSocialFeedPosts(
-  params: SocialFeedParams = {}
-): Promise<StrapiSocialFeedPost[]> {
-  const query: Record<string, string> = {
-    "populate[image]": "true",
-    "sort": "display_order:asc",
-  }
+async function findSocialFeedPosts(params: SocialFeedParams = {}): Promise<StrapiSocialFeedPost[]> {
+  const query: Record<string, unknown> = { ...SOCIAL_FEED_QUERY }
 
   if (params.activeOnly !== false) {
-    query["filters[is_active][$eq]"] = "true"
+    query.filters = { is_active: { $eq: true } }
   }
   if (params.limit) {
-    query["pagination[pageSize]"] = String(params.limit)
+    query.pagination = { pageSize: params.limit }
   }
 
   const res = await strapiRequest<StrapiListResponse<StrapiSocialFeedPost>>(
     "/social-feed-posts",
     query,
-    { next: params.next }
+    params.next
   )
   return res.data
 }
@@ -308,74 +385,48 @@ async function findSocialFeedPosts(
 // Single types (page content)
 // ---------------------------------------------------------------------------
 
-async function getHomePage(
-  next?: NextFetchRequestConfig
-): Promise<StrapiHomePage> {
-  const query: Record<string, string> = {
-    "populate[topImage]": "true",
-    "populate[topImageOverlay]": "true",
-    "populate[bgTileImage]": "true",
-    "populate[sections][populate]": "*",
-  }
+async function getHomePage(next?: NextFetchRequestConfig): Promise<StrapiHomePage> {
   const res = await strapiRequest<StrapiSingleResponse<StrapiHomePage>>(
     "/home-page",
-    query,
-    { next }
+    HOME_PAGE_QUERY,
+    next
   )
   return res.data
 }
 
-async function getGlobalNavigation(
-  next?: NextFetchRequestConfig
-): Promise<StrapiGlobalNavigation> {
-  const query: Record<string, string> = {
-    "populate[logo]": "true",
-    "populate[nav_items][populate][dropdown_sections][populate][items]": "true",
-  }
+async function getGlobalNavigation(next?: NextFetchRequestConfig): Promise<StrapiGlobalNavigation> {
   const res = await strapiRequest<StrapiSingleResponse<StrapiGlobalNavigation>>(
     "/global-navigation",
-    query,
-    { next }
+    NAVIGATION_QUERY,
+    next
   )
   return res.data
 }
 
-async function getCategoriesListingPage(
-  next?: NextFetchRequestConfig
-): Promise<StrapiCategoriesListingPage> {
-  const query: Record<string, string> = {
-    "populate[hero][populate][buttons]": "true",
-    "populate[product_category]": "true",
-  }
-  const res = await strapiRequest<
-    StrapiSingleResponse<StrapiCategoriesListingPage>
-  >("/categories-listing-page", query, { next })
+async function getCategoriesListingPage(next?: NextFetchRequestConfig): Promise<StrapiCategoriesListingPage> {
+  const res = await strapiRequest<StrapiSingleResponse<StrapiCategoriesListingPage>>(
+    "/categories-listing-page",
+    CATEGORIES_LISTING_QUERY,
+    next
+  )
   return res.data
 }
 
-async function getCollectionsListingPage(
-  next?: NextFetchRequestConfig
-): Promise<StrapiCollectionsListingPage> {
-  const query: Record<string, string> = {
-    "populate[hero][populate][buttons]": "true",
-    "populate[pageShell][populate]": "*",
-  }
-  const res = await strapiRequest<
-    StrapiSingleResponse<StrapiCollectionsListingPage>
-  >("/collections-listing-page", query, { next })
+async function getCollectionsListingPage(next?: NextFetchRequestConfig): Promise<StrapiCollectionsListingPage> {
+  const res = await strapiRequest<StrapiSingleResponse<StrapiCollectionsListingPage>>(
+    "/collections-listing-page",
+    COLLECTIONS_LISTING_QUERY,
+    next
+  )
   return res.data
 }
 
-async function getCollectionTimelinePage(
-  next?: NextFetchRequestConfig
-): Promise<StrapiCollectionTimelinePage> {
-  const query: Record<string, string> = {
-    "populate[sectionIntro][populate]": "*",
-    "populate[collectionTimeline][populate][cards][populate][image]": "true",
-  }
-  const res = await strapiRequest<
-    StrapiSingleResponse<StrapiCollectionTimelinePage>
-  >("/collection-timeline-page", query, { next })
+async function getCollectionTimelinePage(next?: NextFetchRequestConfig): Promise<StrapiCollectionTimelinePage> {
+  const res = await strapiRequest<StrapiSingleResponse<StrapiCollectionTimelinePage>>(
+    "/collection-timeline-page",
+    COLLECTION_TIMELINE_QUERY,
+    next
+  )
   return res.data
 }
 
@@ -384,31 +435,25 @@ async function getCollectionTimelinePage(
 // ---------------------------------------------------------------------------
 
 export const strapi = {
-  /** Fetch products from Strapi with full rich content populated */
   products: {
     find: findProducts,
     findOne: findOneProduct,
   },
-  /** Fetch categories from Strapi */
   categories: {
     find: findCategories,
     findOne: findOneCategory,
   },
-  /** Fetch collections from Strapi with editorial fields populated */
   collections: {
     find: findCollections,
     findOne: findOneCollection,
   },
-  /** Fetch artist collaboration entries */
   artists: {
     find: findArtists,
     findOne: findOneArtist,
   },
-  /** Fetch social feed posts */
   socialFeed: {
     find: findSocialFeedPosts,
   },
-  /** Fetch Strapi single-type page content */
   pages: {
     home: getHomePage,
     navigation: getGlobalNavigation,
@@ -416,6 +461,5 @@ export const strapi = {
     collectionsListing: getCollectionsListingPage,
     collectionTimeline: getCollectionTimelinePage,
   },
-  /** Resolve a Strapi media object to an absolute URL */
   imageUrl: strapiImage,
 }
