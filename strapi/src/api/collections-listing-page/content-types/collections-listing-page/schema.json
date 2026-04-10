@@ -1,0 +1,31 @@
+{
+  "kind": "singleType",
+  "collectionName": "collections_listing_page",
+  "info": {
+    "singularName": "collections-listing-page",
+    "pluralName": "collections-listing-pages",
+    "displayName": "Collections Listing Page",
+    "description": "Editable content for the /collections listing page"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Hero": {
+      "type": "component",
+      "component": "shared.listing-hero",
+      "repeatable": false
+    },
+    "pageShell": {
+      "type": "component",
+      "component": "category.page-shell",
+      "repeatable": true
+    },
+    "collection": {
+      "type": "component",
+      "component": "category.category-masonry",
+      "repeatable": false
+    }
+  }
+}

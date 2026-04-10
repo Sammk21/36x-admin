@@ -1,0 +1,26 @@
+{
+  "kind": "singleType",
+  "collectionName": "categories_listing_page",
+  "info": {
+    "singularName": "categories-listing-page",
+    "pluralName": "categories-listing-pages",
+    "displayName": "Categories Listing Page",
+    "description": "Editable content for the /categories listing page"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "hero": {
+      "type": "component",
+      "component": "shared.hero",
+      "repeatable": true
+    },
+    "product_category": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::product-category.product-category"
+    }
+  }
+}

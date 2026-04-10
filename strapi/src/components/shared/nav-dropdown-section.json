@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_shared_nav_dropdown_sections",
+  "info": {
+    "displayName": "Nav Dropdown Section",
+    "icon": "layout",
+    "description": "A titled group of links inside a nav dropdown panel"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.nav-dropdown-item"
+    }
+  }
+}

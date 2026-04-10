@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_category_page_shells",
+  "info": {
+    "displayName": "Page Shell"
+  },
+  "options": {},
+  "attributes": {
+    "bgTileImage": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

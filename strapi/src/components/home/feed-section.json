@@ -1,0 +1,39 @@
+{
+  "collectionName": "components_home_feed_sections",
+  "info": {
+    "displayName": "FeedSection"
+  },
+  "options": {},
+  "attributes": {
+    "sectionIntro": {
+      "type": "component",
+      "component": "shared.section-intro",
+      "repeatable": true
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "media": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "postLink": {
+      "type": "text"
+    },
+    "button": {
+      "type": "component",
+      "component": "shared.button",
+      "repeatable": false
+    }
+  },
+  "config": {}
+}

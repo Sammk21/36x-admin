@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_product_specs",
+  "info": {
+    "displayName": "Product Spec",
+    "icon": "list",
+    "description": "A single spec/detail line item shown in the product detail panel"
+  },
+  "options": {},
+  "attributes": {
+    "text": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

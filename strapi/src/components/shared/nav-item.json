@@ -1,0 +1,24 @@
+{
+  "collectionName": "components_shared_nav_items",
+  "info": {
+    "displayName": "Nav Item",
+    "icon": "link",
+    "description": "A top-level navbar link, optionally with a dropdown panel"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "href": {
+      "type": "string",
+      "default": "#"
+    },
+    "dropdown_sections": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.nav-dropdown-section"
+    }
+  }
+}

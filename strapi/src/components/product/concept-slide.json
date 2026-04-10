@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_product_concept_slides",
+  "info": {
+    "displayName": "Concept Slide",
+    "icon": "image",
+    "description": "Artist/concept carousel slide shown on the product detail page"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    }
+  }
+}

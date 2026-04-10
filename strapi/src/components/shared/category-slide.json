@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_shared_category_slides",
+  "info": {
+    "displayName": "Category Slide",
+    "icon": "picture",
+    "description": "A single product image slide in a category carousel"
+  },
+  "options": {},
+  "attributes": {}
+}

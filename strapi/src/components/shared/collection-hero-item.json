@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_shared_collection_hero_items",
+  "info": {
+    "displayName": "Collection Hero Item",
+    "icon": "layer",
+    "description": "A single card in the home collections carousel"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "tag": {
+      "type": "string"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "href": {
+      "type": "string",
+      "default": "#"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_product_sentiment_bars",
+  "info": {
+    "displayName": "Sentiment Bar",
+    "icon": "emotionHappy",
+    "description": "A single sentiment/emotion bar entry for the review sentiment section"
+  },
+  "options": {},
+  "attributes": {
+    "value": {
+      "type": "integer",
+      "required": true,
+      "min": 0,
+      "max": 100
+    },
+    "label": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images", "files"]
+    },
+    "color": {
+      "type": "string",
+      "default": "text-white"
+    }
+  }
+}

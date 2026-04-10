@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_collection_collection_timelines",
+  "info": {
+    "displayName": "collectionTimeline"
+  },
+  "options": {},
+  "attributes": {
+    "product_collections": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product-collection.product-collection"
+    }
+  },
+  "config": {}
+}

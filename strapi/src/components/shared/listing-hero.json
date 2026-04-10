@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_shared_listing_heroes",
+  "info": {
+    "displayName": "ListingHero"
+  },
+  "options": {},
+  "attributes": {
+    "bannerImage": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "overlayImage": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

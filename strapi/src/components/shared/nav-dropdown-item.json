@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_shared_nav_dropdown_items",
+  "info": {
+    "displayName": "Nav Dropdown Item",
+    "icon": "arrowRight",
+    "description": "A single link inside a nav dropdown section"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "href": {
+      "type": "string",
+      "required": true,
+      "default": "#"
+    }
+  }
+}

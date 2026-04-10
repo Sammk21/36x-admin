@@ -1,0 +1,39 @@
+{
+  "kind": "singleType",
+  "collectionName": "global_navigation",
+  "info": {
+    "singularName": "global-navigation",
+    "pluralName": "global-navigations",
+    "displayName": "Global Navigation",
+    "description": "Site-wide navbar structure: links, labels, dropdowns"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images", "files"]
+    },
+    "logo_alt": {
+      "type": "string",
+      "default": "36X"
+    },
+    "nav_items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.nav-item"
+    },
+    "cart_label": {
+      "type": "string",
+      "default": "CART"
+    },
+    "signin_label": {
+      "type": "string",
+      "default": "Sign In"
+    }
+  }
+}

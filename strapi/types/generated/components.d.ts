@@ -1,0 +1,379 @@
+import type { Schema, Struct } from '@strapi/strapi';
+
+export interface CategoryCategoryMasonry extends Struct.ComponentSchema {
+  collectionName: 'components_category_category_masonries';
+  info: {
+    displayName: 'Collection Masonry';
+  };
+  attributes: {
+    product_collection: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::product-collection.product-collection'
+    >;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+  };
+}
+
+export interface CategoryPageShell extends Struct.ComponentSchema {
+  collectionName: 'components_category_page_shells';
+  info: {
+    displayName: 'Page Shell';
+  };
+  attributes: {
+    bgTileImage: Schema.Attribute.String;
+  };
+}
+
+export interface CollectionCollectionTimeline extends Struct.ComponentSchema {
+  collectionName: 'components_collection_collection_timelines';
+  info: {
+    displayName: 'collectionTimeline';
+  };
+  attributes: {
+    product_collections: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::product-collection.product-collection'
+    >;
+  };
+}
+
+export interface CollectionCollectionTimelineCard
+  extends Struct.ComponentSchema {
+  collectionName: 'components_collection_collection_timeline_cards';
+  info: {
+    displayName: 'Collection timeline card';
+  };
+  attributes: {};
+}
+
+export interface HomeArtistCollab extends Struct.ComponentSchema {
+  collectionName: 'components_home_artist_collabs';
+  info: {
+    displayName: 'Artist Collab';
+  };
+  attributes: {
+    artist_collaborations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::artist-collaboration.artist-collaboration'
+    >;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+  };
+}
+
+export interface HomeCategorySection extends Struct.ComponentSchema {
+  collectionName: 'components_home_category_sections';
+  info: {
+    displayName: 'CategorySection';
+  };
+  attributes: {
+    product_categories: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::product-category.product-category'
+    >;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+  };
+}
+
+export interface HomeCollectionSection extends Struct.ComponentSchema {
+  collectionName: 'components_home_collection_sections';
+  info: {
+    displayName: 'CollectionSection';
+  };
+  attributes: {
+    product_collections: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::product-collection.product-collection'
+    >;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
+  };
+}
+
+export interface HomeFeedSection extends Struct.ComponentSchema {
+  collectionName: 'components_home_feed_sections';
+  info: {
+    displayName: 'FeedSection';
+  };
+  attributes: {
+    button: Schema.Attribute.Component<'shared.button', false>;
+    description: Schema.Attribute.String;
+    media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    postLink: Schema.Attribute.Text;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface HomePageShell extends Struct.ComponentSchema {
+  collectionName: 'components_home_page_shells';
+  info: {
+    displayName: 'PageShell';
+  };
+  attributes: {
+    bgTileImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    topImage: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    topImageOverlay: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+  };
+}
+
+export interface ProductConceptSlide extends Struct.ComponentSchema {
+  collectionName: 'components_product_concept_slides';
+  info: {
+    description: 'Artist/concept carousel slide shown on the product detail page';
+    displayName: 'Concept Slide';
+    icon: 'image';
+  };
+  attributes: {
+    description: Schema.Attribute.Text;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    subtitle: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface ProductGalleryImage extends Struct.ComponentSchema {
+  collectionName: 'components_product_gallery_images';
+  info: {
+    description: 'A single image entry in the product gallery with layout aspect hint';
+    displayName: 'Gallery Image';
+    icon: 'landscape';
+  };
+  attributes: {
+    alt: Schema.Attribute.String & Schema.Attribute.Required;
+    aspect: Schema.Attribute.Enumeration<['tall', 'wide', 'square']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'square'>;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+  };
+}
+
+export interface ProductProductPairing extends Struct.ComponentSchema {
+  collectionName: 'components_product_pairings';
+  info: {
+    description: 'A Goes Well With pairing row: item A + item B = result look';
+    displayName: 'Product Pairing';
+    icon: 'plus';
+  };
+  attributes: {
+    item_a_alt: Schema.Attribute.String & Schema.Attribute.Required;
+    item_a_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    item_b_alt: Schema.Attribute.String & Schema.Attribute.Required;
+    item_b_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    result_alt: Schema.Attribute.String & Schema.Attribute.Required;
+    result_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+  };
+}
+
+export interface ProductProductSpec extends Struct.ComponentSchema {
+  collectionName: 'components_product_specs';
+  info: {
+    description: 'A single spec/detail line item shown in the product detail panel';
+    displayName: 'Product Spec';
+    icon: 'list';
+  };
+  attributes: {
+    text: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface ProductSentimentBar extends Struct.ComponentSchema {
+  collectionName: 'components_product_sentiment_bars';
+  info: {
+    description: 'A single sentiment/emotion bar entry for the review sentiment section';
+    displayName: 'Sentiment Bar';
+    icon: 'emotionHappy';
+  };
+  attributes: {
+    color: Schema.Attribute.String & Schema.Attribute.DefaultTo<'text-white'>;
+    icon: Schema.Attribute.Media<'images' | 'files'>;
+    label: Schema.Attribute.String;
+    value: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+  };
+}
+
+export interface SharedButton extends Struct.ComponentSchema {
+  collectionName: 'components_shared_buttons';
+  info: {
+    displayName: 'Button';
+  };
+  attributes: {
+    href: Schema.Attribute.String;
+    text: Schema.Attribute.String;
+    varient: Schema.Attribute.String;
+  };
+}
+
+export interface SharedCategorySection extends Struct.ComponentSchema {
+  collectionName: 'components_shared_category_sections';
+  info: {
+    description: 'A category block with heading, subheading, view link and product image carousel';
+    displayName: 'Category Section';
+    icon: 'dashboard';
+  };
+  attributes: {};
+}
+
+export interface SharedCategorySlide extends Struct.ComponentSchema {
+  collectionName: 'components_shared_category_slides';
+  info: {
+    description: 'A single product image slide in a category carousel';
+    displayName: 'Category Slide';
+    icon: 'picture';
+  };
+  attributes: {};
+}
+
+export interface SharedCollectionHeroItem extends Struct.ComponentSchema {
+  collectionName: 'components_shared_collection_hero_items';
+  info: {
+    description: 'A single card in the home collections carousel';
+    displayName: 'Collection Hero Item';
+    icon: 'layer';
+  };
+  attributes: {
+    href: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#'>;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    tag: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface SharedHero extends Struct.ComponentSchema {
+  collectionName: 'components_shared_heroes';
+  info: {
+    displayName: 'Hero';
+    icon: 'bold';
+  };
+  attributes: {
+    buttons: Schema.Attribute.Component<'shared.button', true>;
+    subtitle: Schema.Attribute.Text;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface SharedListingHero extends Struct.ComponentSchema {
+  collectionName: 'components_shared_listing_heroes';
+  info: {
+    displayName: 'ListingHero';
+  };
+  attributes: {
+    bannerImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    overlayImage: Schema.Attribute.String;
+  };
+}
+
+export interface SharedMasonryImage extends Struct.ComponentSchema {
+  collectionName: 'components_shared_masonry_images';
+  info: {
+    description: 'A single image entry in a masonry gallery grid';
+    displayName: 'Masonry Image';
+    icon: 'apps';
+  };
+  attributes: {
+    alt: Schema.Attribute.String;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    routeTo: Schema.Attribute.Enumeration<['collections', 'categories']>;
+  };
+}
+
+export interface SharedNavDropdownItem extends Struct.ComponentSchema {
+  collectionName: 'components_shared_nav_dropdown_items';
+  info: {
+    description: 'A single link inside a nav dropdown section';
+    displayName: 'Nav Dropdown Item';
+    icon: 'arrowRight';
+  };
+  attributes: {
+    href: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'#'>;
+    label: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface SharedNavDropdownSection extends Struct.ComponentSchema {
+  collectionName: 'components_shared_nav_dropdown_sections';
+  info: {
+    description: 'A titled group of links inside a nav dropdown panel';
+    displayName: 'Nav Dropdown Section';
+    icon: 'layout';
+  };
+  attributes: {
+    items: Schema.Attribute.Component<'shared.nav-dropdown-item', true>;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface SharedNavItem extends Struct.ComponentSchema {
+  collectionName: 'components_shared_nav_items';
+  info: {
+    description: 'A top-level navbar link, optionally with a dropdown panel';
+    displayName: 'Nav Item';
+    icon: 'link';
+  };
+  attributes: {
+    dropdown_sections: Schema.Attribute.Component<
+      'shared.nav-dropdown-section',
+      true
+    >;
+    href: Schema.Attribute.String & Schema.Attribute.DefaultTo<'#'>;
+    label: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface SharedSectionIntro extends Struct.ComponentSchema {
+  collectionName: 'components_shared_section_intros';
+  info: {
+    displayName: 'SectionIntro';
+  };
+  attributes: {
+    subtitle: Schema.Attribute.Text;
+    title: Schema.Attribute.String;
+  };
+}
+
+declare module '@strapi/strapi' {
+  export module Public {
+    export interface ComponentSchemas {
+      'category.category-masonry': CategoryCategoryMasonry;
+      'category.page-shell': CategoryPageShell;
+      'collection.collection-timeline': CollectionCollectionTimeline;
+      'collection.collection-timeline-card': CollectionCollectionTimelineCard;
+      'home.artist-collab': HomeArtistCollab;
+      'home.category-section': HomeCategorySection;
+      'home.collection-section': HomeCollectionSection;
+      'home.feed-section': HomeFeedSection;
+      'home.page-shell': HomePageShell;
+      'product.concept-slide': ProductConceptSlide;
+      'product.gallery-image': ProductGalleryImage;
+      'product.product-pairing': ProductProductPairing;
+      'product.product-spec': ProductProductSpec;
+      'product.sentiment-bar': ProductSentimentBar;
+      'shared.button': SharedButton;
+      'shared.category-section': SharedCategorySection;
+      'shared.category-slide': SharedCategorySlide;
+      'shared.collection-hero-item': SharedCollectionHeroItem;
+      'shared.hero': SharedHero;
+      'shared.listing-hero': SharedListingHero;
+      'shared.masonry-image': SharedMasonryImage;
+      'shared.nav-dropdown-item': SharedNavDropdownItem;
+      'shared.nav-dropdown-section': SharedNavDropdownSection;
+      'shared.nav-item': SharedNavItem;
+      'shared.section-intro': SharedSectionIntro;
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_shared_masonry_images",
+  "info": {
+    "displayName": "Masonry Image",
+    "icon": "apps",
+    "description": "A single image entry in a masonry gallery grid"
+  },
+  "options": {},
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "alt": {
+      "type": "string"
+    },
+    "routeTo": {
+      "type": "enumeration",
+      "enum": [
+        "collections",
+        "categories"
+      ]
+    }
+  }
+}
