@@ -150,7 +150,7 @@ function StepBreadcrumb({ current }: { current: Step }) {
 function OrderSummary({ cart }: { cart: MedusaCart | null }) {
   if (!cart) return null
   return (
-    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sticky top-8">
+    <div className="bg-white/0.03 border border-white/10 rounded-2xl p-6 sticky top-8">
       <h3 className="text-xs font-display uppercase tracking-widest text-white/50 mb-4">
         Order Summary
       </h3>
@@ -333,7 +333,7 @@ function ShippingStep({
               className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border transition ${
                 selected === opt.id
                   ? "border-white bg-white/10"
-                  : "border-white/10 bg-white/[0.03] hover:border-white/30"
+                  : "border-white/10 bg-white/0.03 hover:border-white/30"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -357,7 +357,7 @@ function ShippingStep({
         <button
           disabled={!selected || isLoading}
           onClick={onNext}
-          className="flex-[2] py-4 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+          className="flex-2 py-4 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
         >
           {isLoading && <Loader2 size={13} className="animate-spin" />}
           Continue to Payment
@@ -407,7 +407,7 @@ function PaymentStep({
         <button
           onClick={onNext}
           disabled={isLoading}
-          className="flex-[2] py-4 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 transition flex items-center justify-center gap-2"
+          className="flex-2 py-4 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 transition flex items-center justify-center gap-2"
         >
           {isLoading && <Loader2 size={13} className="animate-spin" />}
           Review Order
@@ -469,7 +469,7 @@ function ReviewStep({
         <button
           onClick={onPlace}
           disabled={isPlacing}
-          className="flex-[2] py-4 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-60 transition flex items-center justify-center gap-2"
+          className="flex-2 py-4 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-60 transition flex items-center justify-center gap-2"
         >
           {isPlacing && <Loader2 size={13} className="animate-spin" />}
           Place Order
