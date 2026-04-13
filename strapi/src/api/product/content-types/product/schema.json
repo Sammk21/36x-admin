@@ -64,17 +64,26 @@
       "component": "product.product-spec",
       "repeatable": true
     },
-    "artist_collaborations": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::artist-collaboration.artist-collaboration",
-      "mappedBy": "products"
-    },
     "product_collection": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::product-collection.product-collection",
       "inversedBy": "products"
+    },
+    "Artist": {
+      "type": "component",
+      "component": "product.artist",
+      "repeatable": false
+    },
+    "relatedProduct": {
+      "type": "component",
+      "component": "product.related-product",
+      "repeatable": false
+    },
+    "productDuo": {
+      "type": "component",
+      "component": "product.matchers",
+      "repeatable": true
     }
   }
 }
