@@ -5,10 +5,27 @@
   },
   "options": {},
   "attributes": {
-    "product_collections": {
+    "product_collection": {
       "type": "relation",
-      "relation": "oneToMany",
+      "relation": "oneToOne",
       "target": "api::product-collection.product-collection"
+    },
+    "chapterTitle": {
+      "type": "string"
+    },
+    "chapterNumber": {
+      "type": "integer",
+      "unique": true
+    },
+    "chapterBanner": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   },
   "config": {}

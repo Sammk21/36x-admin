@@ -7,6 +7,7 @@ import {
 import { UpdateCollectionInStrapiInput, updateCollectionInStrapiStep } from "./steps/update-collection-in-strapi"
 import { useQueryGraphStep } from "@medusajs/medusa/core-flows"
 import { createCollectionInStrapiWorkflow } from "./create-collection-in-strapi"
+import { syncProductsForCollectionStep } from "./steps/sync-products-for-collection-step"
 
 export type UpdateCollectionInStrapiWorkflowInput = {
   id: string
@@ -15,7 +16,7 @@ export type UpdateCollectionInStrapiWorkflowInput = {
 export const updateCollectionInStrapiWorkflow = createWorkflow(
   "update-collection-in-strapi",
   (input: UpdateCollectionInStrapiWorkflowInput) => {
-    // Fetch the collection with all necessary fields including metadata
+    // Fetch the collection with all necessary fields including metadata and products
     const { data: collections } = useQueryGraphStep({
       entity: "product_collection",
       fields: [
@@ -23,6 +24,8 @@ export const updateCollectionInStrapiWorkflow = createWorkflow(
         "title",
         "handle",
         "metadata",
+        "products.id",
+        "products.metadata",
       ],
       filters: {
         id: input.id,
@@ -32,7 +35,9 @@ export const updateCollectionInStrapiWorkflow = createWorkflow(
       }
     })
 
-    // If collection doesn't exist in Strapi, create it
+    console.log("Fetched collection for updateCollectionInStrapiWorkflow", { collections })
+
+    // If collection doesn't exist in Strapi, create it (which also syncs products via its own step)
     const createResult = when({ collections }, (data) => !data.collections[0].metadata?.strapi_id).then(() => {
       return createCollectionInStrapiWorkflow.runAsStep({
         input: {
@@ -42,8 +47,6 @@ export const updateCollectionInStrapiWorkflow = createWorkflow(
     })
 
     const updateResult = when({ collections }, (data) => !!data.collections[0].metadata?.strapi_id).then(() => {
-
-      // Try to update the collection in Strapi
       return updateCollectionInStrapiStep({
         collection: collections[0],
       } as UpdateCollectionInStrapiInput)
@@ -55,6 +58,15 @@ export const updateCollectionInStrapiWorkflow = createWorkflow(
     }, (data) => {
       return data.createResult || data.updateResult
     })
+
+    // After the collection is synced, update each product's collection relation in Strapi.
+    // Runs unconditionally so it's always in the workflow DAG — no-op when there are no products.
+    const syncInput = transform({ collections }, (data) => ({
+      productIds: (data.collections[0].products || []).map((p: any) => p.id),
+      collectionMedusaId: data.collections[0].id,
+    }))
+
+    syncProductsForCollectionStep(syncInput)
 
     return new WorkflowResponse(result)
   }

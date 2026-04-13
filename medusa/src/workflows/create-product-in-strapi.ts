@@ -94,8 +94,6 @@ export const createProductInStrapiWorkflow = createWorkflow(
       }
     )
 
-    console.log(productWithImages, "productImages")
-
     const strapiProduct = createProductInStrapiStep({
       product: productWithImages,
     } as CreateProductInStrapiInput)

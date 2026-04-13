@@ -32,7 +32,7 @@
       "component": "home.artist-collab",
       "repeatable": false
     },
-    "masonry_images": {
+    "masonry_products": {
       "type": "component",
       "component": "shared.masonry-image",
       "repeatable": false

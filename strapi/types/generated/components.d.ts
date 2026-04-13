@@ -20,7 +20,10 @@ export interface CategoryPageShell extends Struct.ComponentSchema {
     displayName: 'Page Shell';
   };
   attributes: {
-    bgTileImage: Schema.Attribute.String;
+    bgTileImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
   };
 }
 
@@ -30,8 +33,14 @@ export interface CollectionCollectionTimeline extends Struct.ComponentSchema {
     displayName: 'collectionTimeline';
   };
   attributes: {
-    product_collections: Schema.Attribute.Relation<
-      'oneToMany',
+    chapterBanner: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    chapterNumber: Schema.Attribute.Integer & Schema.Attribute.Unique;
+    chapterTitle: Schema.Attribute.String;
+    product_collection: Schema.Attribute.Relation<
+      'oneToOne',
       'api::product-collection.product-collection'
     >;
   };
@@ -98,7 +107,7 @@ export interface HomeFeedSection extends Struct.ComponentSchema {
     description: Schema.Attribute.String;
     media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     postLink: Schema.Attribute.Text;
-    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
     title: Schema.Attribute.String;
   };
 }
@@ -126,12 +135,7 @@ export interface ProductConceptSlide extends Struct.ComponentSchema {
     displayName: 'Concept Slide';
     icon: 'image';
   };
-  attributes: {
-    description: Schema.Attribute.Text;
-    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
-    subtitle: Schema.Attribute.String;
-    title: Schema.Attribute.String & Schema.Attribute.Required;
-  };
+  attributes: {};
 }
 
 export interface ProductGalleryImage extends Struct.ComponentSchema {
@@ -141,13 +145,7 @@ export interface ProductGalleryImage extends Struct.ComponentSchema {
     displayName: 'Gallery Image';
     icon: 'landscape';
   };
-  attributes: {
-    alt: Schema.Attribute.String & Schema.Attribute.Required;
-    aspect: Schema.Attribute.Enumeration<['tall', 'wide', 'square']> &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'square'>;
-    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
-  };
+  attributes: {};
 }
 
 export interface ProductProductPairing extends Struct.ComponentSchema {
@@ -157,14 +155,7 @@ export interface ProductProductPairing extends Struct.ComponentSchema {
     displayName: 'Product Pairing';
     icon: 'plus';
   };
-  attributes: {
-    item_a_alt: Schema.Attribute.String & Schema.Attribute.Required;
-    item_a_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
-    item_b_alt: Schema.Attribute.String & Schema.Attribute.Required;
-    item_b_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
-    result_alt: Schema.Attribute.String & Schema.Attribute.Required;
-    result_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
-  };
+  attributes: {};
 }
 
 export interface ProductProductSpec extends Struct.ComponentSchema {
@@ -186,20 +177,7 @@ export interface ProductSentimentBar extends Struct.ComponentSchema {
     displayName: 'Sentiment Bar';
     icon: 'emotionHappy';
   };
-  attributes: {
-    color: Schema.Attribute.String & Schema.Attribute.DefaultTo<'text-white'>;
-    icon: Schema.Attribute.Media<'images' | 'files'>;
-    label: Schema.Attribute.String;
-    value: Schema.Attribute.Integer &
-      Schema.Attribute.Required &
-      Schema.Attribute.SetMinMax<
-        {
-          max: 100;
-          min: 0;
-        },
-        number
-      >;
-  };
+  attributes: {};
 }
 
 export interface SharedButton extends Struct.ComponentSchema {
@@ -272,7 +250,9 @@ export interface SharedListingHero extends Struct.ComponentSchema {
       'images' | 'files' | 'videos' | 'audios',
       true
     >;
-    overlayImage: Schema.Attribute.String;
+    overlayImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
   };
 }
 
@@ -284,9 +264,7 @@ export interface SharedMasonryImage extends Struct.ComponentSchema {
     icon: 'apps';
   };
   attributes: {
-    alt: Schema.Attribute.String;
-    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
-    routeTo: Schema.Attribute.Enumeration<['collections', 'categories']>;
+    products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
   };
 }
 

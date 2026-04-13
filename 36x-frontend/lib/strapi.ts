@@ -22,7 +22,9 @@ import type {
 const STRAPI_URL =
   process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337"
 
-const STRAPI_TOKEN = process.env.STRAPI_TOKEN ?? ""
+const STRAPI_TOKEN =
+  process.env.STRAPI_TOKEN ??
+  "76edab8cc65389720fa9966a59c59c47cf1fafd7382b332f4de50d95019f07f09fc8940be397add9fa40d18c8c3eaa605e32c6f1b8a13119eaf7de7e4b53714e38fbd7319f0711e21e9f81944a4c933a27d0dbf4ad82fe527a6f6d6a8683bff49c4b07092ccf1003757f0b7c3121c4304aeef1114bbcee0347022a8db691bec7";
 
 // ---------------------------------------------------------------------------
 // Image helper
@@ -63,7 +65,7 @@ async function strapiRequest<T>(
   const headers: HeadersInit = { "Content-Type": "application/json" }
   if (STRAPI_TOKEN) headers["Authorization"] = `Bearer ${STRAPI_TOKEN}`
 
-  const res = await fetch(url, { headers, next })
+  const res = await fetch(url, { headers, next, cache: next ? undefined : "no-store" })
 
   if (!res.ok) {
     throw new Error(
@@ -107,8 +109,14 @@ const PRODUCT_QUERY = {
 
 const COLLECTION_QUERY = {
   populate: {
+    banner: true,
+    thumbnail: true,
     cover_image: true,
     comic_strip_image: true,
+    button: true,
+    products: {
+      populate: { thumbnail: true },
+    },
   },
 }
 
@@ -153,7 +161,7 @@ const HOME_PAGE_QUERY = {
         artist_collaborations: { populate: { cover_image: true } },
       },
     },
-    masonry_images: { populate: { image: true } },
+    masonry_products: { populate: { products: { populate: { thumbnail: true } } } },
     category: {
       populate: {
         sectionIntro: true,
@@ -168,7 +176,7 @@ const HOME_PAGE_QUERY = {
       },
     },
   },
-}
+};
 
 const NAVIGATION_QUERY = {
   populate: {
@@ -196,6 +204,18 @@ const COLLECTIONS_LISTING_QUERY = {
       populate: { bannerImage: true },
     },
     pageShell: true,
+    collection: {
+      populate: {
+        sectionIntro: true,
+        product_collection: {
+          populate: {
+            banner: true,
+            thumbnail: true,
+            products: { populate:  { thumbnail: true } },
+          },
+        },
+      },
+    },
   },
 }
 
@@ -204,7 +224,8 @@ const COLLECTION_TIMELINE_QUERY = {
     sectionIntro: true,
     collectionTimeline: {
       populate: {
-        product_collections: {
+        chapterBanner: true,
+        product_collection: {
           populate: {
             cover_image: true,
             comic_strip_image: true,

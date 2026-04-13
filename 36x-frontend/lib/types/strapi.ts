@@ -137,8 +137,10 @@ export type NavItem = {
 
 export type CollectionTimeline = {
   id: number
-  // The actual chapter data lives on each linked product collection
-  product_collections: StrapiProductCollection[]
+  chapterTitle: string | null
+  chapterNumber: number | null
+  chapterBanner: StrapiMedia[] | null
+  product_collection: StrapiProductCollection | null
 }
 
 // ---------------------------------------------------------------------------
@@ -226,6 +228,7 @@ export type StrapiProductCollection = {
   documentId: string
   medusaId: string
   title: string
+  subtitle: string | null
   handle: string
   // Extended editorial fields
   chapter_number: number | null
@@ -234,8 +237,14 @@ export type StrapiProductCollection = {
   accent_color: string | null
   artist_credit: string | null
   // Media
+  banner: StrapiMedia | null
+  thumbnail: StrapiMedia | null
   cover_image: StrapiMedia | null
   comic_strip_image: StrapiMedia | null
+  // Components
+  button: { id: number; text: string | null; varient: string | null; href: string | null }[]
+  // Relations
+  products: Pick<StrapiProduct, "id" | "documentId" | "medusaId" | "title" | "handle" | "thumbnail">[]
 }
 
 export type StrapiSocialFeedPost = {
@@ -284,11 +293,8 @@ export type StrapiHomePage = {
     sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
     artist_collaborations: StrapiArtistCollaboration[]
   } | null
-  masonry_images: {
-    id: number
-    image: StrapiMedia
-    alt: string | null
-    routeTo: "collections" | "categories" | null
+  masonry_products: {
+   products: Pick<StrapiProduct, "id" | "documentId" | "medusaId" | "title" | "handle" | "thumbnail">[]
   } | null
   category: {
     id: number
@@ -319,7 +325,12 @@ export type ListingHeroComponent = {
 
 export type StrapiCollectionsListingPage = {
   Hero: ListingHeroComponent | null
-  pageShell: { id: number; bgTileImage: string | null }[]
+  pageShell: { id: number; bgTileImage: StrapiMedia | null } | null
+  collection: {
+    id: number
+    sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
+    product_collection: StrapiProductCollection | null
+  } | null
 }
 
 export type StrapiCollectionTimelinePage = {

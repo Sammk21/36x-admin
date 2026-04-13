@@ -20,7 +20,7 @@
     "pageShell": {
       "type": "component",
       "component": "category.page-shell",
-      "repeatable": true
+      "repeatable": false
     },
     "collection": {
       "type": "component",

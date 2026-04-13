@@ -22,7 +22,8 @@ const MEDUSA_URL =
   process.env.NEXT_PUBLIC_MEDUSA_URL ?? "http://localhost:9000"
 
 const MEDUSA_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ?? ""
+  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
+  "pk_fd48be98158d52808635a4ab75d68b1721c0403741b31fadd63d5d26f6a82a7b";
 
 // ---------------------------------------------------------------------------
 // Core fetch helper
@@ -53,6 +54,7 @@ async function medusaRequest<T>(
   const res = await fetch(url.toString(), {
     headers,
     next: options.next,
+    cache: options.next ? undefined : "no-store",
   })
 
   if (!res.ok) {

@@ -560,7 +560,7 @@ export interface ApiCollectionsListingPageCollectionsListingPage
       'api::collections-listing-page.collections-listing-page'
     > &
       Schema.Attribute.Private;
-    pageShell: Schema.Attribute.Component<'category.page-shell', true>;
+    pageShell: Schema.Attribute.Component<'category.page-shell', false>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -629,7 +629,7 @@ export interface ApiHomePageHomePage extends Struct.SingleTypeSchema {
       'api::home-page.home-page'
     > &
       Schema.Attribute.Private;
-    masonry_images: Schema.Attribute.Component<'shared.masonry-image', false>;
+    masonry_products: Schema.Attribute.Component<'shared.masonry-image', false>;
     PageShell: Schema.Attribute.Component<'home.page-shell', false>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
@@ -668,7 +668,6 @@ export interface ApiProductCategoryProductCategory
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     name: Schema.Attribute.String & Schema.Attribute.Required;
-    products: Schema.Attribute.Relation<'manyToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -689,13 +688,8 @@ export interface ApiProductCollectionProductCollection
     draftAndPublish: false;
   };
   attributes: {
-    accent_color: Schema.Attribute.String;
-    artist_credit: Schema.Attribute.String;
-    chapter_label: Schema.Attribute.String;
-    chapter_number: Schema.Attribute.Integer;
-    chapter_subtitle: Schema.Attribute.String;
-    comic_strip_image: Schema.Attribute.Media<'images'>;
-    cover_image: Schema.Attribute.Media<'images'>;
+    banner: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    button: Schema.Attribute.Component<'shared.button', true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -711,6 +705,8 @@ export interface ApiProductCollectionProductCollection
       Schema.Attribute.Unique;
     products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
+    subtitle: Schema.Attribute.String;
+    thumbnail: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -854,17 +850,10 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'manyToMany',
       'api::artist-collaboration.artist-collaboration'
     >;
-    categories: Schema.Attribute.Relation<
-      'manyToMany',
-      'api::product-category.product-category'
-    >;
-    concept_slides: Schema.Attribute.Component<'product.concept-slide', true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.RichText;
-    gallery_images: Schema.Attribute.Component<'product.gallery-image', true>;
-    gallery_video: Schema.Attribute.Media<'videos'>;
     handle: Schema.Attribute.UID<'title'>;
     images: Schema.Attribute.Media<'images', true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -880,19 +869,11 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::product-option.product-option'
     >;
-    pairings: Schema.Attribute.Component<'product.product-pairing', true>;
     product_collection: Schema.Attribute.Relation<
       'manyToOne',
       'api::product-collection.product-collection'
     >;
     publishedAt: Schema.Attribute.DateTime;
-    review_dominant_icon: Schema.Attribute.Media<'images' | 'files'>;
-    review_headline: Schema.Attribute.String;
-    review_sentiment_bars: Schema.Attribute.Component<
-      'product.sentiment-bar',
-      true
-    >;
-    review_summary: Schema.Attribute.Text;
     specs: Schema.Attribute.Component<'product.product-spec', true>;
     subtitle: Schema.Attribute.String;
     thumbnail: Schema.Attribute.Media<'images'>;

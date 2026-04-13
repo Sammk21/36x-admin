@@ -7,23 +7,10 @@
   },
   "options": {},
   "attributes": {
-    "image": {
-      "type": "media",
-      "multiple": false,
-      "required": true,
-      "allowedTypes": [
-        "images"
-      ]
-    },
-    "alt": {
-      "type": "string"
-    },
-    "routeTo": {
-      "type": "enumeration",
-      "enum": [
-        "collections",
-        "categories"
-      ]
+    "products": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product.product"
     }
   }
 }

@@ -11,6 +11,7 @@ import {
   useQueryGraphStep,
 } from "@medusajs/medusa/core-flows"
 import { updateCollectionMetadataStep } from "./steps/update-collection-metadata"
+import { syncProductsForCollectionStep } from "./steps/sync-products-for-collection-step"
 
 export type CreateCollectionInStrapiWorkflowInput = {
   id: string
@@ -25,6 +26,8 @@ export const createCollectionInStrapiWorkflow = createWorkflow(
         "id",
         "title",
         "handle",
+        "products.id",
+        "products.metadata",
       ],
       filters: {
         id: input.id,
@@ -55,6 +58,15 @@ export const createCollectionInStrapiWorkflow = createWorkflow(
     })
 
     updateCollectionMetadataStep(collectionMetadataUpdate)
+
+    // After the collection is created in Strapi, update each product's collection relation.
+    // Runs unconditionally — no-op when there are no products.
+    const syncInput = transform({ collections }, (data) => ({
+      productIds: (data.collections[0].products || []).map((p: any) => p.id),
+      collectionMedusaId: data.collections[0].id,
+    }))
+
+    syncProductsForCollectionStep(syncInput)
 
     return new WorkflowResponse(strapiCollection)
   }

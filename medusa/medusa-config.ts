@@ -15,6 +15,12 @@ module.exports = defineConfig({
   },
   modules: [
     {
+      resolve: "@medusajs/medusa/payment",
+      options: {
+        providers: [],
+      },
+    },
+    {
       resolve: "./modules/strapi",
       options: {
         apiUrl: process.env.STRAPI_API_URL || "http://localhost:1337",

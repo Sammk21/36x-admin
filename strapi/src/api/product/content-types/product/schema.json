@@ -64,65 +64,16 @@
       "component": "product.product-spec",
       "repeatable": true
     },
-    "gallery_video": {
-      "type": "media",
-      "multiple": false,
-      "required": false,
-      "allowedTypes": [
-        "videos"
-      ]
-    },
-    "gallery_images": {
-      "type": "component",
-      "component": "product.gallery-image",
-      "repeatable": true
-    },
-    "concept_slides": {
-      "type": "component",
-      "component": "product.concept-slide",
-      "repeatable": true
-    },
-    "review_headline": {
-      "type": "string"
-    },
-    "review_summary": {
-      "type": "text"
-    },
-    "review_dominant_icon": {
-      "type": "media",
-      "multiple": false,
-      "required": false,
-      "allowedTypes": [
-        "images",
-        "files"
-      ]
-    },
-    "review_sentiment_bars": {
-      "type": "component",
-      "component": "product.sentiment-bar",
-      "repeatable": true
-    },
     "artist_collaborations": {
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::artist-collaboration.artist-collaboration",
       "mappedBy": "products"
     },
-    "pairings": {
-      "type": "component",
-      "component": "product.product-pairing",
-      "repeatable": true
-    },
     "product_collection": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::product-collection.product-collection",
-      "inversedBy": "products"
-    },
-    "categories": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::product-category.product-category",
       "inversedBy": "products"
     }
   }

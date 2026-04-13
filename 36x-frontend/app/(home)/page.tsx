@@ -6,17 +6,9 @@ import CollectionSection from "@/components/home/collections";
 import { Masonry } from "@/components/home/Masonry";
 import { strapi, strapiImage } from "@/lib/strapi";
 
-const fallbackImages = Array.from({ length: 9 }, (_, i) => {
-  const isLandscape = i % 2 === 0;
-  const width = isLandscape ? 800 : 600;
-  const height = isLandscape ? 600 : 800;
-  return `https://picsum.photos/seed/${i + 1}/${width}/${height}`;
-});
-
 export default async function Home() {
   const homePage = await strapi.pages.home();
 
-  // Resolve Strapi media to absolute URLs, fall back to local assets
   const topImageUrl =
     strapiImage(homePage.PageShell?.topImage) ?? "/images/top-off.png";
   const topImageOverlayUrl =
@@ -24,27 +16,30 @@ export default async function Home() {
   const bgTileImageUrl =
     strapiImage(homePage.PageShell?.bgTileImage) ?? "/images/bottom.jpg";
 
+  const masonryProducts = (homePage.masonry_products?.products ?? []).map((p) => ({
+    id: p.id,
+    title: p.title,
+    handle: p.handle,
+    thumbnailUrl: strapiImage(p.thumbnail),
+  }));
 
-    console.log(homePage, "homePage")
   return (
-    <div>
-
-    </div>
-    // <HomePageShell
-    //   topImage={topImageUrl}
-    //   topImageOverlay={topImageOverlayUrl}
-    //   bgTileImage={bgTileImageUrl}
-    // >
-    //   <HomeHero />
-    //   <CollectionSection />
-    //   <ArtistCollaborations />
-    //   <Masonry
-    //     title="Fragments of movement"
-    //     description="Explore our latest collection of curated pieces."
-    //     images={fallbackImages}
-    //     className="my-0"
-    //   />
-    //   <InstagramFeedStackSection />
-    // </HomePageShell>
+    <HomePageShell
+      topImage={topImageUrl}
+      topImageOverlay={topImageOverlayUrl}
+      bgTileImage={bgTileImageUrl}
+    >
+      <HomeHero />
+      <CollectionSection />
+      <ArtistCollaborations />
+      <Masonry
+        title="Fragments of movement"
+        description="Explore our latest collection of curated pieces."
+        products={masonryProducts}
+        className="my-0"
+        columns={3}
+      />
+      <InstagramFeedStackSection />
+    </HomePageShell>
   );
 }

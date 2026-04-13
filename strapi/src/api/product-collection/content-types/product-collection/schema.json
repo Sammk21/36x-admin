@@ -21,46 +21,43 @@
       "type": "string",
       "required": true
     },
+    "subtitle": {
+      "type": "string"
+    },
     "handle": {
       "type": "uid",
       "targetField": "title"
-    },
-    "chapter_number": {
-      "type": "integer"
-    },
-    "chapter_label": {
-      "type": "string"
-    },
-    "chapter_subtitle": {
-      "type": "string"
-    },
-    "comic_strip_image": {
-      "type": "media",
-      "multiple": false,
-      "required": false,
-      "allowedTypes": [
-        "images"
-      ]
-    },
-    "accent_color": {
-      "type": "string"
-    },
-    "cover_image": {
-      "type": "media",
-      "multiple": false,
-      "required": false,
-      "allowedTypes": [
-        "images"
-      ]
-    },
-    "artist_credit": {
-      "type": "string"
     },
     "products": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::product.product",
       "mappedBy": "product_collection"
+    },
+    "banner": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "thumbnail": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "button": {
+      "type": "component",
+      "component": "shared.button",
+      "repeatable": true
     }
   }
 }

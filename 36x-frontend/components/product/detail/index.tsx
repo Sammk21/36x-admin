@@ -3,14 +3,26 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence, Variants } from "motion/react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 import ConceptSection from "./conceptSection";
 import ReviewsSentiment from "./reviewSentiment";
 import GallerySection from "./gallery-section";
+import { useCart } from "@/lib/store/cart";
+import { formatPrice } from "@/lib/cart";
+import type { MedusaProductVariant, MedusaProductOption } from "@/lib/types/medusa";
 
 type Size = "XS" | "S" | "M" | "L" | "XL" | "XXL";
+
+export type ProductDetailProps = {
+  title?: string
+  description?: string | null
+  variants?: MedusaProductVariant[]
+  options?: MedusaProductOption[]
+  currencyCode?: string
+}
 
 const containerVariants = {
   hidden: {},
@@ -42,7 +54,19 @@ const staggerInfo: Variants = {
   visible: { transition: { staggerChildren: 0.1, delayChildren: 0.25 } },
 };
 
-function StickyButtons({ selectedSize }: { selectedSize: Size | null }) {
+function StickyButtons({
+  variantId,
+  disabled,
+  onAddToCart,
+  onBuyNow,
+  isLoading,
+}: {
+  variantId: string | null
+  disabled: boolean
+  onAddToCart: () => void
+  onBuyNow: () => void
+  isLoading: boolean
+}) {
   const [isVisible, setIsVisible] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -76,17 +100,21 @@ function StickyButtons({ selectedSize }: { selectedSize: Size | null }) {
             <Button
               size={"responsive" as any}
               variant="default"
-              className="flex py-6 flex-1 items-center justify-center gap-2 bg-white text-black text-sm font-medium tracking-[0.15em] uppercase"
+              disabled={disabled || isLoading}
+              onClick={onBuyNow}
+              className="flex py-6 flex-1 items-center justify-center gap-2 bg-white text-black text-sm font-medium tracking-[0.15em] uppercase disabled:opacity-50"
             >
-              <img className="h-4.5 w-4.5" src={"/icons/cart.svg"} />
+              {isLoading ? <Loader2 size={16} className="animate-spin" /> : <img className="h-4.5 w-4.5" src={"/icons/cart.svg"} />}
               Buy Now
             </Button>
             <Button
               size={"responsive" as any}
               variant="outline"
-              className="flex py-6 flex-1 items-center justify-center gap-2 text-sm font-medium tracking-[0.15em] uppercase"
+              disabled={disabled || isLoading}
+              onClick={onAddToCart}
+              className="flex py-6 flex-1 items-center justify-center gap-2 text-sm font-medium tracking-[0.15em] uppercase disabled:opacity-50"
             >
-              <img className="h-4.5 w-4.5" src={"/icons/shopping-bag.svg"} />
+              {isLoading ? <Loader2 size={16} className="animate-spin" /> : <img className="h-4.5 w-4.5" src={"/icons/shopping-bag.svg"} />}
               Add to Cart
             </Button>
           </motion.div>
@@ -96,16 +124,60 @@ function StickyButtons({ selectedSize }: { selectedSize: Size | null }) {
   );
 }
 
-export default function ProductDetail() {
-  const [selectedSize, setSelectedSize] = useState<Size | null>(null);
+export default function ProductDetail({
+  title = "HOOD MONARCHY",
+  description = "36X is the anchor piece of the brand — the one that sits closest to our identity. Built from 280 GSM super-combed cotton, it holds its structure and falls naturally. The wide 1×1 rib keeps the neckline crisp through every wash.",
+  variants = [],
+  options = [],
+  currencyCode = "inr",
+}: ProductDetailProps) {
+  const { addItem, isLoading: cartLoading } = useCart();
+  const router = useRouter();
+
+  // ── Option selection state ──────────────────────────────────────────────
+  // Map option id → selected value id
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [detailsOpen, setDetailsOpen] = useState<boolean>(false);
+
+  // Find the variant that matches all currently selected option values
+  const selectedVariant = variants.find((v) =>
+    v.options.every(
+      (opt) => selectedOptions[opt.option_id] === opt.id
+    )
+  ) ?? null;
+
+  const hasOptions = options.length > 0;
+  const noSelectionMade = hasOptions && !selectedVariant;
+
+  // Price: use first price of selected variant, or cheapest variant
+  const displayVariant = selectedVariant ?? variants[0] ?? null;
+  const price = displayVariant?.prices?.[0]
+    ? formatPrice(displayVariant.prices[0].amount, displayVariant.prices[0].currency_code ?? currencyCode)
+    : null;
+
+  // Fallback to size display if no options from Medusa (dev/preview mode)
+  const [selectedSize, setSelectedSize] = useState<Size | null>(null);
+
+  // ── Cart actions ────────────────────────────────────────────────────────
+  const handleAddToCart = async () => {
+    if (!selectedVariant) return;
+    await addItem(selectedVariant.id);
+  };
+
+  const handleBuyNow = async () => {
+    if (!selectedVariant) return;
+    await addItem(selectedVariant.id);
+    router.push("/checkout");
+  };
+
+  const ctaDisabled = cartLoading || (hasOptions && !selectedVariant);
 
   return (
     <main className="min-h-screen bg-[#111111] text-white">
       <div className="flex flex-col lg:flex-row min-h-screen">
-       
-          <GallerySection />
-     
+
+        <GallerySection />
+
         <motion.section
           className="w-full lg:w-[40%] lg:sticky lg:top-0 lg:max-h-screen flex flex-col justify-between px-3 sm:px-5 py-10 lg:px-10 lg:py-0 border-l border-zinc-800/50"
           variants={staggerInfo}
@@ -115,9 +187,9 @@ export default function ProductDetail() {
           <div className="flex-1 flex flex-col justify-center">
             <motion.h1
               variants={slideUp}
-              className="text-5xl lg:text-4xl  uppercase font-display leading-[100%]"
+              className="text-5xl lg:text-4xl uppercase font-display leading-[100%]"
             >
-              HOOD MONARCHY
+              {title}
             </motion.h1>
 
             <motion.div
@@ -125,7 +197,7 @@ export default function ProductDetail() {
               className="flex items-baseline gap-3 mt-2 mb-3"
             >
               <p className="text-2xl font-body font-medium leading-[100%]">
-                ₹ 1,999
+                {price ?? "—"}
               </p>
             </motion.div>
 
@@ -133,44 +205,83 @@ export default function ProductDetail() {
               variants={slideUp}
               className="text-sm tracking-wide leading-tight font-body text-white/60 mb-8 max-w-sm"
             >
-              36X is the anchor piece of the brand — the one that sits closest
-              to our identity. Built from 280 GSM super-combed cotton, it holds
-              its structure and falls naturally. The wide 1×1 rib keeps the
-              neckline crisp through every wash.
+              {description}
             </motion.p>
 
-            <motion.div variants={slideUp} className="mb-10">
-              <div className="flex items-center">
-                <div className="flex flex-row-reverse   -space-x-px">
-                  {["XS", "S", "M", "L", "XL", "XXL"].map((size, index) => (
-                    <b
-                      onClick={() => setSelectedSize(SIZES[index])}
-                      key={size}
-                      className={`
-                        relative flex rounded-l-none last:rounded-l-[12px]  h-11 w-15 items-center justify-center
-                        border-[0.5px] border-white/90 bg-[#111111] active:scale-96
-                        text-sm font-medium hover:text-black cursor-pointer
-                        transition-all hover:z-20 hover:bg-white
-                        rounded-[12px]
-                        -mr-3
-                        z-${index}
-                        ${selectedSize === size ? "bg-white text-black z-30" : ""}
-                      `}
-                    >
-                      {size}
-                    </b>
-                  ))}
+            {/* Medusa options (size, color, etc.) */}
+            {hasOptions ? (
+              <motion.div variants={slideUp} className="mb-10 space-y-5">
+                {options.map((option) => (
+                  <div key={option.id}>
+                    <p className="text-[11px] uppercase tracking-widest text-white/40 font-body mb-2">
+                      {option.title}
+                    </p>
+                    <div className="flex flex-row-reverse -space-x-px">
+                      {option.values.map((val, index) => {
+                        const isSelected = selectedOptions[option.id] === val.id;
+                        return (
+                          <b
+                            key={val.id}
+                            onClick={() =>
+                              setSelectedOptions((prev) => ({
+                                ...prev,
+                                [option.id]: val.id,
+                              }))
+                            }
+                            className={`
+                              relative flex rounded-l-none last:rounded-l-[12px] h-11 w-15 items-center justify-center
+                              border-[0.5px] border-white/90 bg-[#111111] active:scale-96
+                              text-sm font-medium hover:text-black cursor-pointer
+                              transition-all hover:z-20 hover:bg-white
+                              rounded-[12px] -mr-3 z-${index}
+                              ${isSelected ? "bg-white text-black z-30" : ""}
+                            `}
+                          >
+                            {val.value}
+                          </b>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                {noSelectionMade && (
+                  <p className="text-white/30 text-xs font-body">
+                    Please select options above
+                  </p>
+                )}
+              </motion.div>
+            ) : (
+              // Fallback size picker when no Medusa options loaded
+              <motion.div variants={slideUp} className="mb-10">
+                <div className="flex items-center">
+                  <div className="flex flex-row-reverse -space-x-px">
+                    {["XS", "S", "M", "L", "XL", "XXL"].map((size, index) => (
+                      <b
+                        onClick={() => setSelectedSize(SIZES[index])}
+                        key={size}
+                        className={`
+                          relative flex rounded-l-none last:rounded-l-[12px] h-11 w-15 items-center justify-center
+                          border-[0.5px] border-white/90 bg-[#111111] active:scale-96
+                          text-sm font-medium hover:text-black cursor-pointer
+                          transition-all hover:z-20 hover:bg-white
+                          rounded-[12px] -mr-3 z-${index}
+                          ${selectedSize === size ? "bg-white text-black z-30" : ""}
+                        `}
+                      >
+                        {size}
+                      </b>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            )}
 
             <motion.div variants={slideUp} className="mb-8">
               <button
                 onClick={() => setDetailsOpen((prev) => !prev)}
-                className="flex items-center gap-1  text-xs tracking-[0.2em] uppercase text-zinc-300 hover:text-white transition-colors"
+                className="flex items-center gap-1 text-xs tracking-[0.2em] uppercase text-zinc-300 hover:text-white transition-colors"
                 style={{ fontFamily: "'Barlow', sans-serif" }}
               >
-            
                 + More Details
               </button>
 
@@ -200,7 +311,13 @@ export default function ProductDetail() {
           </div>
 
           <div className="pb-10 lg:pb-10">
-            <StickyButtons selectedSize={selectedSize} />
+            <StickyButtons
+              variantId={selectedVariant?.id ?? null}
+              disabled={ctaDisabled}
+              onAddToCart={handleAddToCart}
+              onBuyNow={handleBuyNow}
+              isLoading={cartLoading}
+            />
 
             <motion.div
               variants={slideUp}
@@ -210,25 +327,34 @@ export default function ProductDetail() {
               <Button
                 size={"responsive" as any}
                 variant="default"
-                className="flex py-6 flex-1 items-center justify-center gap-2 bg-white text-black text-sm font-medium tracking-[0.15em] uppercase"
+                disabled={ctaDisabled}
+                onClick={handleBuyNow}
+                className="flex py-6 flex-1 items-center justify-center gap-2 bg-white text-black text-sm font-medium tracking-[0.15em] uppercase disabled:opacity-50"
               >
-                <img className="h-4.5 w-4.5" src={"/icons/cart.svg"} />
+                {cartLoading
+                  ? <Loader2 size={16} className="animate-spin" />
+                  : <img className="h-4.5 w-4.5" src={"/icons/cart.svg"} />
+                }
                 Buy Now
               </Button>
 
               <Button
                 size={"responsive" as any}
                 variant="outline"
-                className="flex py-6 flex-1 items-center justify-center gap-2 text-sm font-medium tracking-[0.15em] uppercase"
+                disabled={ctaDisabled}
+                onClick={handleAddToCart}
+                className="flex py-6 flex-1 items-center justify-center gap-2 text-sm font-medium tracking-[0.15em] uppercase disabled:opacity-50"
               >
-                <img className="h-4.5 w-4.5" src={"/icons/shopping-bag.svg"} />
+                {cartLoading
+                  ? <Loader2 size={16} className="animate-spin" />
+                  : <img className="h-4.5 w-4.5" src={"/icons/shopping-bag.svg"} />
+                }
                 Add to Cart
               </Button>
             </motion.div>
           </div>
         </motion.section>
       </div>
-    
     </main>
   );
 }

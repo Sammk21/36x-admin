@@ -35,12 +35,6 @@
     "is_internal": {
       "type": "boolean",
       "default": false
-    },
-    "products": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::product.product",
-      "mappedBy": "categories"
     }
   }
 }

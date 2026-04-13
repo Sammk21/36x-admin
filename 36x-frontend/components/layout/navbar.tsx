@@ -9,6 +9,10 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import SearchOverlay from "../ui/searchOverlay";
 import { usePathname } from "next/navigation";
+import { useCart } from "@/lib/store/cart";
+import { useAuth } from "@/lib/store/auth";
+import MiniCart from "./MiniCart";
+import AuthModal from "@/components/auth/AuthModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -203,6 +207,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
+  const { itemCount, isOpen: cartOpen, openCart, closeCart, toggleCart } = useCart();
+  const { customer, isAuthenticated, logout } = useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
+  const cartBtnRef = useRef<HTMLButtonElement>(null);
 
   return (
     <header className="fixed -top-1 z-50 w-full">
@@ -256,28 +264,75 @@ export default function Navbar() {
             </button>
 
             {/* Cart */}
-            <Button
-              size="lg"
-              variant="outline"
-              className="hidden md:flex items-center text-lg font-display gap-2 rounded-lg text-white hover:bg-white/10"
+            <div
+              className="relative hidden md:block"
+              onMouseEnter={openCart}
+              onMouseLeave={closeCart}
             >
-              <img
-                className="h-3.5 w-3.5 mb-0.5"
-                src="/icons/Cart.svg"
-                alt=""
-              />
-              <span>CART</span>
-            </Button>
+              <Button
+                ref={cartBtnRef}
+                size="lg"
+                variant="outline"
+                onClick={toggleCart}
+                className="flex items-center text-lg font-display gap-2 rounded-lg text-white hover:bg-white/10"
+              >
+                <img
+                  className="h-3.5 w-3.5 mb-0.5"
+                  src="/icons/Cart.svg"
+                  alt=""
+                />
+                <span>CART</span>
+                {itemCount > 0 && (
+                  <span className="ml-0.5 flex items-center justify-center w-4 h-4 rounded-full bg-white text-black text-[9px] font-bold leading-none">
+                    {itemCount > 9 ? "9+" : itemCount}
+                  </span>
+                )}
+              </Button>
 
-            {/* Sign In */}
-            <Button
-              size="lg"
-              variant="outline"
-              className="hidden md:flex items-center text-lg font-display gap-2 rounded-lg text-white hover:bg-white/10"
-            >
-              <User size={16} />
-              Sign In
-            </Button>
+              {/* Mini cart — stays open while hovering the button or panel */}
+              <div onMouseEnter={openCart} onMouseLeave={closeCart}>
+                <MiniCart open={cartOpen} onClose={closeCart} />
+              </div>
+            </div>
+
+            {/* Sign In / Account */}
+            {isAuthenticated ? (
+              <div className="relative hidden md:block group">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="flex items-center text-lg font-display gap-2 rounded-lg text-white hover:bg-white/10"
+                >
+                  <User size={16} />
+                  {customer?.first_name ?? "Account"}
+                </Button>
+                {/* Dropdown */}
+                <div className="absolute right-0 top-full mt-2 w-40 bg-[#1c2529] border border-white/10 rounded-xl overflow-hidden opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity z-50">
+                  <Link
+                    href="/my-account"
+                    className="block px-4 py-3 text-xs font-display uppercase tracking-wider text-white/70 hover:text-white hover:bg-white/5 transition"
+                  >
+                    My Account
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="w-full text-left px-4 py-3 text-xs font-display uppercase tracking-wider text-white/70 hover:text-white hover:bg-white/5 transition border-t border-white/10"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => setAuthOpen(true)}
+                className="hidden md:flex items-center text-lg font-display gap-2 rounded-lg text-white hover:bg-white/10"
+              >
+                <User size={16} />
+                Sign In
+              </Button>
+            )}
 
             {/* Hamburger */}
             <button
@@ -367,6 +422,9 @@ export default function Navbar() {
 
       {/* Search overlay */}
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Auth modal */}
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </header>
   );
 }

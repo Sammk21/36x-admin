@@ -186,3 +186,119 @@ export type MedusaCategoryListParams = {
   offset?: number
   withStrapi?: boolean
 }
+
+// ---------------------------------------------------------------------------
+// Cart types (Medusa v2 Store API)
+// ---------------------------------------------------------------------------
+
+export type MedusaAddress = {
+  first_name: string | null
+  last_name: string | null
+  address_1: string | null
+  address_2: string | null
+  city: string | null
+  country_code: string | null
+  province: string | null
+  postal_code: string | null
+  phone: string | null
+}
+
+export type MedusaLineItem = {
+  id: string
+  cart_id: string
+  title: string
+  subtitle: string | null
+  thumbnail: string | null
+  variant_id: string | null
+  variant: MedusaProductVariant | null
+  product_id: string | null
+  quantity: number
+  unit_price: number
+  original_total: number
+  discount_total: number
+  total: number
+  metadata: Record<string, unknown> | null
+}
+
+export type MedusaShippingMethod = {
+  id: string
+  name: string
+  amount: number
+}
+
+export type MedusaCart = {
+  id: string
+  currency_code: string
+  email: string | null
+  shipping_address: MedusaAddress | null
+  billing_address: MedusaAddress | null
+  items: MedusaLineItem[]
+  shipping_methods: MedusaShippingMethod[]
+  subtotal: number
+  discount_total: number
+  shipping_total: number
+  tax_total: number
+  total: number
+  region_id: string | null
+  metadata: Record<string, unknown> | null
+}
+
+export type MedusaRegion = {
+  id: string
+  name: string
+  currency_code: string
+  countries: { iso_2: string; display_name: string }[]
+}
+
+export type MedusaCartResponse = { cart: MedusaCart }
+export type MedusaRegionListResponse = { regions: MedusaRegion[] }
+
+export type MedusaShippingOption = {
+  id: string
+  name: string
+  amount: number
+  currency_code: string
+  provider_id: string
+  service_zone: { name: string } | null
+}
+
+export type MedusaShippingOptionListResponse = {
+  shipping_options: MedusaShippingOption[]
+}
+
+export type MedusaPaymentSession = {
+  id: string
+  provider_id: string
+  status: string
+  amount: number
+  currency_code: string
+  data: Record<string, unknown>
+}
+
+export type MedusaPaymentCollection = {
+  id: string
+  status: string
+  amount: number
+  currency_code: string
+  payment_sessions: MedusaPaymentSession[]
+}
+
+export type MedusaPaymentCollectionResponse = {
+  payment_collection: MedusaPaymentCollection
+}
+
+export type MedusaOrder = {
+  id: string
+  display_id: number
+  status: string
+  email: string | null
+  currency_code: string
+  total: number
+  subtotal: number
+  shipping_total: number
+  tax_total: number
+  items: MedusaLineItem[]
+  shipping_address: MedusaAddress | null
+}
+
+export type MedusaOrderResponse = { order: MedusaOrder }

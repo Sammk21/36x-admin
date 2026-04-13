@@ -10,29 +10,17 @@ export type SyncProductRelationsInStrapiInput = {
 
 export const syncProductRelationsInStrapiStep = createStep(
   "sync-product-relations-in-strapi",
-  async ({ productId, categoryIds, collectionId }: SyncProductRelationsInStrapiInput, { container }) => {
+  async ({ productId, collectionId }: SyncProductRelationsInStrapiInput, { container }) => {
     const strapiService: StrapiModuleService = container.resolve(STRAPI_MODULE)
 
     // Find the Strapi product — if it doesn't exist yet, skip silently
     const strapiProduct = await strapiService.findByMedusaId(
       Collection.PRODUCTS,
       productId,
-      ["categories", "product_collection"]
+      ["product_collection"]
     )
     if (!strapiProduct) {
       return new StepResponse(null, null)
-    }
-
-    // Resolve Strapi documentIds for all Medusa categories
-    const categoryDocumentIds: string[] = []
-    for (const categoryId of categoryIds) {
-      const strapiCategory = await strapiService.findByMedusaId(
-        Collection.PRODUCT_CATEGORIES,
-        categoryId
-      )
-      if (strapiCategory) {
-        categoryDocumentIds.push(strapiCategory.documentId)
-      }
     }
 
     // Resolve Strapi documentId for the Medusa collection
@@ -47,24 +35,18 @@ export const syncProductRelationsInStrapiStep = createStep(
       }
     }
 
-    // Capture original relations for compensation
-    const originalCategoryDocumentIds = Array.isArray(strapiProduct.categories)
-      ? strapiProduct.categories.map((c: any) => c.documentId).filter(Boolean)
-      : []
     const originalCollectionDocumentId =
       strapiProduct.product_collection?.documentId ?? null
 
-    // Update the Strapi product's relations
+    // Update the Strapi product's collection relation
     await strapiService.update(Collection.PRODUCTS, strapiProduct.documentId, {
-      categories: { set: categoryDocumentIds },
       product_collection: collectionDocumentId,
     })
 
     return new StepResponse(
-      { categoryDocumentIds, collectionDocumentId },
+      { collectionDocumentId },
       {
         strapiProductDocumentId: strapiProduct.documentId,
-        originalCategoryDocumentIds,
         originalCollectionDocumentId,
       }
     )
@@ -75,15 +57,9 @@ export const syncProductRelationsInStrapiStep = createStep(
     }
 
     const strapiService: StrapiModuleService = container.resolve(STRAPI_MODULE)
-    const {
-      strapiProductDocumentId,
-      originalCategoryDocumentIds,
-      originalCollectionDocumentId,
-    } = compensationData
 
-    await strapiService.update(Collection.PRODUCTS, strapiProductDocumentId, {
-      categories: { set: originalCategoryDocumentIds },
-      product_collection: originalCollectionDocumentId,
+    await strapiService.update(Collection.PRODUCTS, compensationData.strapiProductDocumentId, {
+      product_collection: compensationData.originalCollectionDocumentId,
     })
   }
 )

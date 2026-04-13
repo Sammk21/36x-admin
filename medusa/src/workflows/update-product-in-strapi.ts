@@ -47,7 +47,6 @@ export const updateProductInStrapiWorkflow = createWorkflow(
     })
 
     const updateResult = when({ products }, (data) => !!data.products[0].metadata?.strapi_id).then(() => {
-
       // Try to update the product in Strapi
       return updateProductInStrapiStep({
         product: products[0],
