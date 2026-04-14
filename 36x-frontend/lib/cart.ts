@@ -11,16 +11,7 @@ import type {
   MedusaOrder,
 } from "./types/medusa"
 
-// ---------------------------------------------------------------------------
-// Config
-// ---------------------------------------------------------------------------
-
-const MEDUSA_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_URL ?? "http://localhost:9000"
-
-const MEDUSA_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
-  "pk_fd48be98158d52808635a4ab75d68b1721c0403741b31fadd63d5d26f6a82a7b";
+import { MEDUSA_URL, MEDUSA_PUBLISHABLE_KEY } from "./env"
 
 // ---------------------------------------------------------------------------
 // Core fetch helper (client-safe — no Next cache)

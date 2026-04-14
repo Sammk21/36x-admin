@@ -19,31 +19,52 @@ interface MasonryProps {
   description: React.ReactNode;
   products: MasonryProduct[];
   className?: string;
-  columns?: number;
 }
 
-function ProductCard({ product }: { product: MasonryProduct }) {
+// Repeating pattern of aspect ratios — tall, medium, landscape, tall, medium, landscape...
+// This creates a Pinterest-style visual rhythm regardless of actual image dimensions.
+type AspectType = "tall" | "medium" | "landscape";
+
+const ASPECT_PATTERN: AspectType[] = [
+  "tall",
+  "medium",
+  "landscape",
+  "medium",
+  "tall",
+  "landscape",
+];
+
+const ASPECT_CLASS: Record<AspectType, string> = {
+  tall:      "aspect-[3/5]",
+  medium:    "aspect-[3/4]",
+  landscape: "aspect-[4/3]",
+};
+
+function ProductCard({
+  product,
+  aspect,
+}: {
+  product: MasonryProduct;
+  aspect: AspectType;
+}) {
   return (
     <Link href={`/products/${product.handle}`}>
-      <div className="group relative w-full overflow-hidden rounded-2xl bg-[#1a1a1a] cursor-pointer">
-        {/* Image */}
-        <div className="relative w-full aspect-[3/4] overflow-hidden">
+      <div className="group relative w-full overflow-hidden rounded-2xl bg-[#1a1a1a] cursor-pointer mb-4 break-inside-avoid">
+        <div className={`relative w-full ${ASPECT_CLASS[aspect]} overflow-hidden`}>
           {product.thumbnailUrl ? (
             <Image
               src={product.thumbnailUrl}
               alt={product.title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-              sizes="(max-width: 768px) 50vw, 33vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
             <div className="w-full h-full bg-neutral-800" />
           )}
 
-          {/* Bottom gradient — always visible, intensifies on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent transition-opacity duration-300" />
 
-          {/* Info overlay — slides up on hover */}
           <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
             {product.collectionLabel && (
               <p className="text-[10px] uppercase tracking-widest text-neutral-400 mb-1 font-medium">
@@ -66,7 +87,6 @@ function ProductCard({ product }: { product: MasonryProduct }) {
 }
 
 export function Masonry({
-  columns = 3,
   title,
   description,
   products,
@@ -74,7 +94,7 @@ export function Masonry({
 }: MasonryProps) {
   return (
     <section className={`w-full text-white py-16 md:py-24 ${className}`}>
-      <div className="max-w-300 mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16 px-2 space-y-4">
           <SectionIntro
             descriptionClassName="text-neutral-200"
@@ -83,11 +103,15 @@ export function Masonry({
             description={description}
           />
         </div>
-        <div className={`columns-2 md:columns-${columns} gap-6 px-4 space-y-6`}>
+        <div className="columns-2 md:columns-3 gap-4 px-4">
           {products.map((product, idx) => (
-            <BlurFade key={product.id} delay={0.1 + idx * 0.05} inView>
-              <ProductCard product={product} />
+            <BlurFade key={product.id} delay={0.05 + idx * 0.04} inView>
+              <ProductCard
+                product={product}
+                aspect={ASPECT_PATTERN[idx % ASPECT_PATTERN.length]}
+              />
             </BlurFade>
+            
           ))}
         </div>
       </div>

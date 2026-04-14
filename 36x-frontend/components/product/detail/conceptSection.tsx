@@ -13,7 +13,7 @@ interface ArtistSlide {
   subtitle: string | null;
   bio: string | null;
   imageUrl: string | null;
-  handle: string;
+  handle: string | null;
 }
 
 interface ConceptSectionProps {
@@ -63,7 +63,7 @@ export default function ConceptSection({ artists = [] }: ConceptSectionProps) {
                 className="flex-[0_0_100%] flex justify-center px-4"
               >
                 <Link
-                  href={`/artist/${artist.handle}`}
+                  href={artist.handle ? `/artist/${artist.handle}` : "#"}
                   className="block relative w-full max-w-7xl overflow-hidden rounded-[28px] md:rounded-[40px] group"
                 >
                   <div className="relative aspect-4/5 md:aspect-18/8">

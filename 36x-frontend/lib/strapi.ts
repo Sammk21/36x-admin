@@ -14,17 +14,7 @@ import type {
   StrapiCollectionTimelinePage,
   StrapiMedia,
 } from "./types/strapi"
-
-// ---------------------------------------------------------------------------
-// Config
-// ---------------------------------------------------------------------------
-
-const STRAPI_URL =
-  process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337"
-
-const STRAPI_TOKEN =
-  process.env.STRAPI_TOKEN ??
-  "76edab8cc65389720fa9966a59c59c47cf1fafd7382b332f4de50d95019f07f09fc8940be397add9fa40d18c8c3eaa605e32c6f1b8a13119eaf7de7e4b53714e38fbd7319f0711e21e9f81944a4c933a27d0dbf4ad82fe527a6f6d6a8683bff49c4b07092ccf1003757f0b7c3121c4304aeef1114bbcee0347022a8db691bec7";
+import { STRAPI_URL, STRAPI_TOKEN } from "./env"
 
 // ---------------------------------------------------------------------------
 // Image helper
@@ -45,6 +35,15 @@ export function strapiImage(
       : media.url
   if (!raw) return null
   return raw.startsWith("http") ? raw : `${STRAPI_URL}${raw}`
+}
+
+/**
+ * Resolves a raw Strapi URL string (e.g. `/uploads/image.jpg`) to an absolute URL.
+ * Use this in client components where you already have the URL string, not the full media object.
+ */
+export function getStrapiMedia(url: string | null | undefined): string  {
+  if (!url) return "/placeholder.png"
+  return url.startsWith("http") ? url : `${STRAPI_URL}${url}`
 }
 
 // ---------------------------------------------------------------------------
@@ -86,7 +85,6 @@ const PRODUCT_QUERY = {
     thumbnail: true,
     gallery_video: true,
     gallery_images: { populate: { image: true } },
-    review_sentiment_bars: true,
     productDuo: {
       populate: {
         productOne: { populate: { thumbnail: true } },
@@ -94,7 +92,9 @@ const PRODUCT_QUERY = {
         Result: true,
       },
     },
-    artist_collaborations: { populate: { cover_image: true } },
+    artist_collaborations: { populate: { coverImage: true } },
+    specs: true,
+    product_collection: true,
     variants: {
       populate: {
         images: true,
@@ -121,7 +121,7 @@ const COLLECTION_QUERY = {
 
 const ARTIST_QUERY = {
   populate: {
-    cover_image: true,
+    coverImage: true,
     bannerImages: true,
     socialLinks: true,
     products: {
@@ -150,13 +150,13 @@ const HOME_PAGE_QUERY = {
     collection: {
       populate: {
         sectionIntro: true,
-        product_collections: true,
+        product_collections: {populate:{thumbnail: true}},
       },
     },
     artistCollab: {
       populate: {
         sectionIntro: true,
-        artist_collaborations: { populate: { cover_image: true } },
+        artist_collaborations: { populate: { coverImage: true } },
       },
     },
     masonry_products: { populate: { products: { populate: { thumbnail: true } } } },
@@ -169,8 +169,8 @@ const HOME_PAGE_QUERY = {
     feedSection: {
       populate: {
         sectionIntro: true,
-        media: true,
-        button: true,
+         button:true,
+        posts: { populate: { media: true } },
       },
     },
   },
@@ -267,6 +267,14 @@ async function findOneProduct(
   next?: NextFetchRequestConfig
 ): Promise<StrapiProduct | null> {
   const results = await findProducts({ medusaId, next })
+  return results[0] ?? null
+}
+
+async function findProductByHandle(
+  handle: string,
+  next?: NextFetchRequestConfig
+): Promise<StrapiProduct | null> {
+  const results = await findProducts({ handle, next })
   return results[0] ?? null
 }
 
@@ -464,6 +472,7 @@ export const strapi = {
   products: {
     find: findProducts,
     findOne: findOneProduct,
+    findByHandle: findProductByHandle,
   },
   categories: {
     find: findCategories,

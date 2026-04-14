@@ -7,10 +7,9 @@ import { Masonry } from "@/components/home/Masonry";
 import { strapi, strapiImage } from "@/lib/strapi";
 
 export default async function Home() {
-  const [homePage, socialFeedPosts] = await Promise.all([
-    strapi.pages.home(),
-    strapi.socialFeed.find({ activeOnly: true }),
-  ]);
+  const homePage = await strapi.pages.home();
+
+  console.log("Home page data:", homePage); // Debug log to check the structure of the fetched data
 
   const topImageUrl =
     strapiImage(homePage.PageShell?.topImage) ?? "/images/top-off.png";
@@ -37,23 +36,15 @@ export default async function Home() {
   const artistCollabs = (homePage.artistCollab?.artist_collaborations ?? []).map((a) => ({
     title: a.title,
     subtitle: a.subtitle,
-    imageUrl: strapiImage(a.cover_image) ?? "",
-    handle: a.handle,
+    imageUrl: strapiImage(a.coverImage) ?? "",
+    handle: a.handle ?? a.documentId,
   }));
 
-  const feedSection = homePage.feedSection?.[0] ?? null;
-  const feedTitle =
-    feedSection?.sectionIntro?.[0]?.title ?? feedSection?.title ?? null;
-  const feedDescription =
-    feedSection?.sectionIntro?.[0]?.subtitle ?? feedSection?.description ?? null;
-  const feedButton = feedSection?.button ?? null;
-
-  const feedPosts = socialFeedPosts.map((post) => ({
-    id: post.id,
-    image: strapiImage(post.image) ?? "",
-    label: post.title,
-    sub: post.subtitle ?? "",
-  }));
+  const feedSection = homePage.feedSection ?? null;
+  const feedTitle = feedSection?.sectionIntro?.title ?? null
+  const feedDescription = feedSection?.sectionIntro?.subtitle ?? null
+  const feedButton = feedSection?.button?.[0] ?? null
+  const feedPosts = feedSection?.posts ?? [];
 
   return (
     <HomePageShell
@@ -66,14 +57,22 @@ export default async function Home() {
         subtitle={homePage.HomeHero?.subtitle}
         buttons={homePage.HomeHero?.buttons}
       />
-      <CollectionSection collections={collections} />
-      <ArtistCollaborations collaborations={artistCollabs} />
+      <CollectionSection
+        collections={collections}
+        title={homePage.collection?.sectionIntro?.title}
+        subtitle={homePage.collection?.sectionIntro?.subtitle}
+      />
+      <ArtistCollaborations
+        collaborations={artistCollabs}
+        title={homePage.artistCollab?.sectionIntro?.[0]?.title}
+        subtitle={homePage.artistCollab?.sectionIntro?.[0]?.subtitle}
+      />
       <Masonry
         title="Fragments of movement"
         description="Explore our latest collection of curated pieces."
         products={masonryProducts}
         className="my-0"
-        columns={3}
+
       />
       <FeedStackSection
         title={feedTitle}

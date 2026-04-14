@@ -14,46 +14,41 @@ interface ProductPageProps {
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
-  console.log("Fetching product with slug:", slug);
-
-  let product;
-  try {
-    product = await medusa.products.retrieve(slug);
-    console.log(product ? "Product found:" : "Product not found for slug:", product);
-  } catch {
-    notFound();
-  }
-
-  const [reviewStats, reviews, strapiProduct, socialFeedPosts] = await Promise.all([
-    medusa.productReviews.listStats(product.id).catch(() => null),
-    medusa.productReviews.list(product.id).catch(() => []),
-    strapi.products.findOne(product.id).catch(() => null),
+  // Strapi (content) and Medusa (variants/prices) fire in parallel
+  const [strapiProduct, medusaProduct, feedPosts] = await Promise.all([
+    strapi.products.findByHandle(slug).catch(() => null),
+    medusa.products.retrieve(slug).catch(() => null),
     strapi.socialFeed.find({ activeOnly: true }).catch(() => []),
   ]);
 
-  console.log("Fetched product review stats:", reviewStats);
+  if (!strapiProduct) notFound();
 
-  // Gallery data from Strapi
-  const galleryImages = (strapiProduct?.gallery_images ?? []).map((gi) => ({
+  // Reviews keyed by Medusa product ID — run after we have medusaId from Strapi
+  const [reviewStats, reviews] = await Promise.all([
+    medusa.productReviews.listStats(strapiProduct.medusaId).catch(() => null),
+    medusa.productReviews.list(strapiProduct.medusaId).catch(() => []),
+  ]);
+
+  // Gallery images from Strapi
+  const galleryImages = (strapiProduct.gallery_images ?? []).map((gi) => ({
     id: gi.id,
     src: strapiImage(gi.image) ?? "",
     alt: gi.alt ?? gi.image?.name ?? "",
     aspect: gi.aspect ?? null,
   }));
-  const galleryVideoUrl = strapiImage(strapiProduct?.gallery_video) ?? null;
 
-  // Artist collaborations → drives the "concept behind the piece" slider
-  const artists = (strapiProduct?.artist_collaborations ?? []).map((a) => ({
+  // Artist collaborations → concept section
+  const artists = (strapiProduct.artist_collaborations ?? []).map((a) => ({
     id: a.id,
     title: a.title,
     subtitle: a.subtitle,
     bio: a.bio,
-    imageUrl: strapiImage(a.cover_image) ?? null,
+    imageUrl: strapiImage(a.coverImage) ?? null,
     handle: a.handle,
   }));
 
-  // Goes Well With — product relations + custom result image
-  const pairings = (strapiProduct?.productDuo ?? []).map((m) => ({
+  // Goes Well With pairings
+  const pairings = (strapiProduct.productDuo ?? []).map((m) => ({
     id: m.id,
     productOne: m.productOne
       ? {
@@ -74,29 +69,28 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     resultImageUrl: strapiImage(m.Result) ?? null,
   }));
 
-  // Social feed posts for the stacked slider
-  const feedPosts = socialFeedPosts.map((post) => ({
-    id: post.id,
-    image: strapiImage(post.image) ?? "",
-    label: post.title,
-    sub: post.subtitle ?? "",
-  }));
+console.log(artists)
 
   return (
     <div className="bg-[#111111]">
+      {/* Variants/options/prices from Medusa; all content from Strapi */}
       <ProductDetail
-        title={product.title}
-        description={product.description}
-        variants={product.variants}
-        options={product.options}
-        currencyCode={product.variants?.[0]?.prices?.[0]?.currency_code ?? "inr"}
+        title={strapiProduct.title}
+        description={strapiProduct.description}
+        variants={medusaProduct?.variants}
+        options={medusaProduct?.options}
+        currencyCode={medusaProduct?.variants?.[0]?.prices?.[0]?.currency_code ?? "inr"}
         galleryImages={galleryImages}
-        galleryVideoUrl={galleryVideoUrl}
+        galleryVideoUrl={strapiImage(strapiProduct.gallery_video) ?? null}
       />
       <ConceptSection artists={artists} />
       <GoesWellWith pairings={pairings} />
       <FeedStackSection posts={feedPosts} />
-      <ReviewsSentiment productId={product.id} stats={reviewStats} reviews={reviews} />
+      <ReviewsSentiment
+        productId={strapiProduct.medusaId}
+        stats={reviewStats}
+        reviews={reviews}
+      />
     </div>
   );
 }

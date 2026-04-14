@@ -23,11 +23,6 @@
     },
     "postLink": {
       "type": "string"
-    },
-    "button": {
-      "type": "component",
-      "component": "shared.button",
-      "repeatable": true
     }
   },
   "config": {}

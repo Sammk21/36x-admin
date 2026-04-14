@@ -1,12 +1,14 @@
 import Hero from "@/components/listings/ListingHero";
 import PageShell from "@/components/listings/PageShell";
-import ProductGrid from "@/components/listings/collection/collectonSection";
+import CollectionGrid from "@/components/listings/collection/collectonSection";
 import { strapi, strapiImage } from "@/lib/strapi";
 
 export default async function CollectionsListingPage() {
-  const page = await strapi.pages.collectionsListing({ revalidate: 3600 });
+  const [page, collections] = await Promise.all([
+    strapi.pages.collectionsListing({ revalidate: 3600 }),
+    strapi.collections.find(),
+  ]);
 
-  // shared.listing-hero: bannerImage[] (media) + overlayImage (string)
   const bannerImageUrl =
     strapiImage(page.Hero?.bannerImage?.[0]) ?? "/images/img9.png";
   const overlayImageUrl =
@@ -16,7 +18,7 @@ export default async function CollectionsListingPage() {
     <>
       <Hero bottomImage={bannerImageUrl} topImage={overlayImageUrl} />
       <PageShell>
-        <ProductGrid />
+        <CollectionGrid collections={collections} />
       </PageShell>
     </>
   );

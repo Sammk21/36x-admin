@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import StackedSlider, { type CardData } from "./slider";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { Posts } from "@/lib/types";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger);
 
@@ -19,7 +20,7 @@ interface FeedSectionProps {
   description?: string | null;
   buttonText?: string | null;
   buttonHref?: string | null;
-  posts?: CardData[];
+  posts?: Posts[] | any;
 }
 
 export default function FeedStackSection({

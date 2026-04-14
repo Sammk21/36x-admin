@@ -82,13 +82,6 @@ export type GalleryImage = {
   aspect: "tall" | "wide" | "square" | null
 }
 
-export type SentimentBar = {
-  id: number
-  value: number
-  label: string
-  icon: string | null
-  color: string | null
-}
 
 export type StrapiProductMatcher = {
   id: number
@@ -175,15 +168,20 @@ export type StrapiArtistCollaboration = {
   id: number
   documentId: string
   title: string
-  handle: string
+  handle: string | null
   subtitle: string | null
   bio: string | null
-  cover_image: StrapiMedia | null
+  coverImage: StrapiMedia | null
   show_on_homepage: boolean
   homepage_order: number | null
   socialLinks: StrapiSocialLinks | null
   bannerImages: StrapiMedia[]
   products: Pick<StrapiProduct, "id" | "documentId" | "title" | "handle" | "thumbnail">[]
+}
+
+export type StrapiProductSpec = {
+  id: number
+  text: string
 }
 
 export type StrapiProduct = {
@@ -201,15 +199,12 @@ export type StrapiProduct = {
   // Components
   gallery_images: GalleryImage[]
   productDuo: StrapiProductMatcher[]
-  // Review
-  review_headline: string | null
-  review_summary: string | null
-  review_dominant_icon: string | null
-  review_sentiment_bars: SentimentBar[]
+  specs: StrapiProductSpec[]
   // Relations
   variants: StrapiProductVariant[]
   options: StrapiProductOption[]
   artist_collaborations: StrapiArtistCollaboration[]
+  product_collection: Pick<StrapiProductCollection, "id" | "documentId" | "title" | "handle"> | null
 }
 
 export type StrapiProductCategory = {
@@ -270,15 +265,20 @@ export type StrapiPageShell = {
   bgTileImage: StrapiMedia | null
 }
 
+export type Posts = {
+    id: number;
+    title: string | null;
+    description: string | null;
+    postLink: string | null;
+    media: StrapiMedia | null;
+};
+
 export type StrapiFeedSection = {
-  id: number
-  title: string | null
-  description: string | null
-  postLink: string | null
-  media: StrapiMedia | null
-  button: HeroButton | null
-  sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
-}
+  id: number;
+  posts: Posts[];
+  button: HeroButton[] | null;
+  sectionIntro: { id: number; title: string | null; subtitle: string | null };
+};
 
 export type StrapiHomePage = {
   PageShell: StrapiPageShell | null
@@ -301,7 +301,7 @@ export type StrapiHomePage = {
     sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
     product_categories: StrapiProductCategory[]
   } | null
-  feedSection: StrapiFeedSection[]
+  feedSection: StrapiFeedSection
 }
 
 export type StrapiGlobalNavigation = {

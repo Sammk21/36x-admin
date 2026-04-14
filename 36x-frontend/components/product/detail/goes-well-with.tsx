@@ -27,7 +27,7 @@ interface GoesWellWithProps {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const ProductCard: React.FC<{ product: ProductRef }> = ({ product }) => (
-  <Link href={`/product/${product.handle}`} className="block group">
+  <Link href={`/products/${product.handle}`} className="block group">
     <div className="relative w-full aspect-square overflow-hidden rounded-2xl bg-neutral-800">
       {product.thumbnailUrl ? (
         <Image

@@ -26,6 +26,16 @@
         "videos",
         "audios"
       ]
+    },
+    "storyBanner": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   },
   "config": {}

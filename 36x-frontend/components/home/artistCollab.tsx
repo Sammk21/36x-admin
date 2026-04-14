@@ -9,6 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SectionIntro from "../shared/SectionIntro";
 import Image from "next/image";
 import Link from "next/link";
+import { getStrapiMedia } from "@/lib/strapi";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger);
 
@@ -24,9 +25,11 @@ interface CollaborationItem {
 
 interface ArtistCollaborationsProps {
   collaborations?: CollaborationItem[];
+  title?: string | null;
+  subtitle?: string | null;
 }
 
-export default function ArtistCollaborations({ collaborations = [] }: ArtistCollaborationsProps) {
+export default function ArtistCollaborations({ collaborations = [], title, subtitle }: ArtistCollaborationsProps) {
   const sectionRef = useRef<HTMLElement>(null);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -119,7 +122,7 @@ export default function ArtistCollaborations({ collaborations = [] }: ArtistColl
     },
     { scope: sectionRef },
   );
-  const titleWords = "ARTIST COLLABORATIONS".split(" ");
+  const titleWords = (title ?? "").split(" ").filter(Boolean);
 
   return (
     <section
@@ -128,32 +131,35 @@ export default function ArtistCollaborations({ collaborations = [] }: ArtistColl
     >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 md:mb-14 space-y-4">
-          <h2
-            className=" text-6xl md:text-7xl font-display uppercase text-center tracking-tight"
-            aria-label="ARTIST COLLABORATIONS"
-          >
-            {titleWords.map((word, i) => (
-              <span
-                key={i}
-                aria-hidden="true"
-                className="inline-block overflow-hidden align-bottom"
-                style={{
-                  marginRight: i < titleWords.length - 1 ? "0.3em" : undefined,
-                }}
-              >
-                <span className="collab-word-inner  inline-block will-change-transform">
-                  {word}
+          {titleWords.length > 0 && (
+            <h2
+              className="text-6xl md:text-7xl font-display uppercase text-center tracking-tight"
+              aria-label={title ?? ""}
+            >
+              {titleWords.map((word, i) => (
+                <span
+                  key={i}
+                  aria-hidden="true"
+                  className="inline-block overflow-hidden align-bottom"
+                  style={{
+                    marginRight: i < titleWords.length - 1 ? "0.3em" : undefined,
+                  }}
+                >
+                  <span className="collab-word-inner inline-block will-change-transform">
+                    {word}
+                  </span>
                 </span>
-              </span>
-            ))}
-          </h2>
+              ))}
+            </h2>
+          )}
 
-          {/* Animated description */}
-          <div className="overflow-hidden">
-            <p className="collab-desc text-lg md:text-xl text-center text-neutral-200 max-w-2xl mx-auto font-body  will-change-transform">
-              Each collaboration tells a story through fabric, form, and color.
-            </p>
-          </div>
+          {subtitle && (
+            <div className="overflow-hidden">
+              <p className="collab-desc text-lg md:text-xl text-center text-neutral-200 max-w-2xl mx-auto font-body will-change-transform">
+                {subtitle}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Cards */}
@@ -173,7 +179,7 @@ export default function ArtistCollaborations({ collaborations = [] }: ArtistColl
                 >
                   <div className="relative aspect-389/510 w-full">
                     <Image
-                      src={item.imageUrl}
+                      src={getStrapiMedia(item.imageUrl)}
                       alt={item.title}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-105"

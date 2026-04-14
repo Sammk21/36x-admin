@@ -31,18 +31,17 @@ function IconSlider({
 
   return (
     <div className="relative w-full max-w-sm">
-      {/* Track */}
-      <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 h-px bg-zinc-700 mx-6" />
-      {/* Fill */}
-      <motion.div
-        className="absolute top-1/2 left-6 -translate-y-1/2 h-px bg-white origin-left"
+      {/* Track + Fill — behind icons */}
+      {/* <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 h-px bg-zinc-700 mx-6 z-0" /> */}
+      {/* <motion.div
+        className="absolute top-1/2 left-6 -translate-y-1/2 h-px bg-white origin-left z-0"
         animate={{ scaleX: fillPct / 100 }}
         style={{ width: "calc(100% - 3rem)", transformOrigin: "left" }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      />
+      /> */}
 
-      {/* Icons */}
-      <div className="relative flex justify-between items-center py-4">
+      {/* Icons — above track */}
+      <div className="relative z-10 flex justify-between items-center py-4">
         {REVIEW_ICONS.map((icon) => {
           const isActive = active >= icon.index
           const isSelected = selected === icon.index
@@ -57,21 +56,21 @@ function IconSlider({
               onMouseLeave={() => setHovered(0)}
               className="relative flex flex-col items-center gap-2 focus:outline-none group"
             >
-              <motion.img
-                src={icon.src}
-                alt={icon.label}
+              <motion.div
                 animate={{
                   scale: isSelected ? 1.4 : hovered === icon.index ? 1.2 : 1,
                   opacity: active > 0 ? (isActive ? 1 : 0.25) : 0.5,
                 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="w-9 h-9"
-              />
+                className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center"
+              >
+                <img src={icon.src} alt={icon.label} className="w-7 h-7" />
+              </motion.div>
               {isSelected && (
                 <motion.span
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute -bottom-5 text-[10px] uppercase tracking-widest text-zinc-400 whitespace-nowrap"
+                  className="absolute -bottom-4 text-[10px] uppercase tracking-widest text-zinc-400 whitespace-nowrap"
                 >
                   {icon.label}
                 </motion.span>

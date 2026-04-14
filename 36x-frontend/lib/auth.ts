@@ -2,12 +2,7 @@
 // Medusa v2 Customer Auth — Store API
 // ---------------------------------------------------------------------------
 
-const MEDUSA_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_URL ?? "http://localhost:9000"
-
-const MEDUSA_PUBLISHABLE_KEY = "pk_b5e6c02dcd611e3eac923182d4e4fbe4af845b7852439787d4e28f8b95cbe2e0"
-  // process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
-  // "pk_fd48be98158d52808635a4ab75d68b1721c0403741b31fadd63d5d26f6a82a7b";
+import { MEDUSA_URL, MEDUSA_PUBLISHABLE_KEY } from "./env"
 
 const AUTH_TOKEN_KEY = "36x_auth_token"
 

@@ -227,7 +227,7 @@ export default function ProductDetail({
                     <p className="text-[11px] uppercase tracking-widest text-white/40 font-body mb-2">
                       {option.title}
                     </p>
-                    <div className="flex flex-row-reverse -space-x-px">
+                    <div className="flex flex-row gap-1">
                       {option.values.map((val, index) => {
                         const isSelected = selectedOptions[option.id] === val.id;
                         return (
@@ -239,16 +239,21 @@ export default function ProductDetail({
                                 [option.id]: val.id,
                               }))
                             }
+                            style={{
+                              zIndex: isSelected
+                                ? 30
+                                : option.values.length - index,
+                            }}
                             className={`
-                              relative flex rounded-l-none last:rounded-l-[12px] h-11 w-15 items-center justify-center
+                              relative flex first:rounded-lg rounded-l-none last:rounded-r-[12px] h-11 w-15 items-center justify-center
                               border-[0.5px] border-white/90 bg-[#111111] active:scale-96
                               text-sm font-medium hover:text-black cursor-pointer
-                              transition-all hover:z-20 hover:bg-white
-                              rounded-[12px] -mr-3 z-${index}
-                              ${isSelected ? "bg-white text-black z-30" : ""}
+                              transition-all hover:bg-white  
+                              rounded-[12px] -mr-3 px-5
+                              ${isSelected ? "bg-white text-black" : ""}
                             `}
                           >
-                            {val.value}
+                            <span> {val.value}</span>
                           </b>
                         );
                       })}
@@ -264,25 +269,24 @@ export default function ProductDetail({
             ) : (
               // Fallback size picker when no Medusa options loaded
               <motion.div variants={slideUp} className="mb-10">
-                <div className="flex items-center">
-                  <div className="flex flex-row-reverse -space-x-px">
-                    {["XS", "S", "M", "L", "XL", "XXL"].map((size, index) => (
-                      <b
-                        onClick={() => setSelectedSize(SIZES[index])}
-                        key={size}
-                        className={`
-                          relative flex rounded-l-none last:rounded-l-[12px] h-11 w-15 items-center justify-center
-                          border-[0.5px] border-white/90 bg-[#111111] active:scale-96
-                          text-sm font-medium hover:text-black cursor-pointer
-                          transition-all hover:z-20 hover:bg-white
-                          rounded-[12px] -mr-3 z-${index}
-                          ${selectedSize === size ? "bg-white text-black z-30" : ""}
-                        `}
-                      >
-                        {size}
-                      </b>
-                    ))}
-                  </div>
+                <div className="flex flex-row -space-x-px">
+                  {["XS", "S", "M", "L", "XL", "XXL"].map((size, index) => (
+                    <b
+                      onClick={() => setSelectedSize(SIZES[index])}
+                      key={size}
+                      style={{ zIndex: selectedSize === size ? 30 : 6 - index }}
+                      className={`
+                        relative flex rounded-l-none last:rounded-r-[12px] h-11 w-15 items-center justify-center
+                        border-[0.5px] border-white/90 bg-[#111111] active:scale-96
+                        text-sm font-medium hover:text-black cursor-pointer
+                        transition-all hover:bg-white
+                        rounded-[12px] -mr-3
+                        ${selectedSize === size ? "bg-white text-black" : ""}
+                      `}
+                    >
+                      {size}
+                    </b>
+                  ))}
                 </div>
               </motion.div>
             )}

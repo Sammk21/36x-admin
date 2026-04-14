@@ -43,6 +43,10 @@ export interface CollectionCollectionTimeline extends Struct.ComponentSchema {
       'oneToOne',
       'api::product-collection.product-collection'
     >;
+    storyBanner: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
   };
 }
 
@@ -103,6 +107,7 @@ export interface HomeFeedSection extends Struct.ComponentSchema {
     displayName: 'FeedSection';
   };
   attributes: {
+    button: Schema.Attribute.Component<'shared.button', true>;
     posts: Schema.Attribute.Component<'home.posts', true>;
     sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
   };
@@ -130,7 +135,6 @@ export interface HomePosts extends Struct.ComponentSchema {
     displayName: 'Posts';
   };
   attributes: {
-    button: Schema.Attribute.Component<'shared.button', true>;
     description: Schema.Attribute.String;
     media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     postLink: Schema.Attribute.String;

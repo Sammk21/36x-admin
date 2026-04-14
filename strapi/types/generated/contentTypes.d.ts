@@ -448,12 +448,11 @@ export interface ApiArtistCollaborationArtistCollaboration
       true
     >;
     bio: Schema.Attribute.RichText;
-    cover_image: Schema.Attribute.Media<'images'>;
+    coverImage: Schema.Attribute.Media<'images'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    handle: Schema.Attribute.UID;
-    homepage_order: Schema.Attribute.Integer;
+    handle: Schema.Attribute.UID<'title'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -462,8 +461,6 @@ export interface ApiArtistCollaborationArtistCollaboration
       Schema.Attribute.Private;
     products: Schema.Attribute.Relation<'manyToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
-    show_on_homepage: Schema.Attribute.Boolean &
-      Schema.Attribute.DefaultTo<false>;
     socialLinks: Schema.Attribute.Component<'shared.social-links', false>;
     subtitle: Schema.Attribute.String;
     title: Schema.Attribute.String & Schema.Attribute.Required;

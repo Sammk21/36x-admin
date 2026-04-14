@@ -8,6 +8,8 @@ import {
   useTransform,
   PanInfo,
 } from "framer-motion";
+import { Posts } from "@/lib/types";
+import { getStrapiMedia } from "@/lib/strapi";
 
 export interface CardData {
   id: number;
@@ -17,7 +19,7 @@ export interface CardData {
 }
 
 interface CardProps {
-  card: CardData;
+  card: Posts;
   index: number;
   total: number;
   isTop: boolean;
@@ -111,8 +113,8 @@ function Card({
         }}
       >
         <img
-          src={card.image}
-          alt={card.label}
+          src={getStrapiMedia(card.media?.url) || "/placeholder.png"}
+          alt={card.media?.alternativeText || "Card image"}
           style={{
             width: "100%",
             height: "100%",
@@ -156,7 +158,7 @@ function Card({
                 textTransform: "uppercase",
               }}
             >
-              {card.label}
+              {card.title}
             </div>
             <div
             className="font-display"
@@ -168,7 +170,7 @@ function Card({
                 textTransform: "uppercase",
               }}
             >
-              {card.sub}
+              {card.description}
             </div>
           </div>
         )}
@@ -177,8 +179,8 @@ function Card({
   );
 }
 
-export default function StackedSlider({ cards = [] }: { cards?: CardData[] }) {
-  const [deck, setDeck] = useState<CardData[]>(cards);
+export default function StackedSlider({ cards = [] }: { cards?: Posts[] }) {
+  const [deck, setDeck] = useState<Posts[]>(cards);
 
   const handleDismiss = () => {
     setDeck((prev) => {
@@ -247,8 +249,8 @@ function StackedSliderInner({
   visible,
   onDismiss,
 }: {
-  deck: CardData[];
-  visible: CardData[];
+  deck: Posts[];
+  visible: Posts[];
   onDismiss: () => void;
 }) {
   const [dims, setDims] = useState({

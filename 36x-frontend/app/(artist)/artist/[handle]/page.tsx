@@ -97,11 +97,14 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
 
   const artist = await strapi.artists.findOne(handle).catch(() => null);
   if (!artist) notFound();
+// Debug log to check the fetched artist data
 
-  const coverUrl = strapiImage(artist.cover_image);
+  const coverUrl = strapiImage(artist.coverImage);
   const bannerUrls = (artist.bannerImages ?? [])
     .map((img) => strapiImage(img))
     .filter(Boolean) as string[];
+
+    console.log(coverUrl, bannerUrls);
 
   const products = (artist.products ?? []).map((p) => ({
     id: p.id,

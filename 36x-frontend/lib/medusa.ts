@@ -14,16 +14,7 @@ import type {
   MedusaCategoryListParams,
 } from "./types/medusa"
 
-// ---------------------------------------------------------------------------
-// Config
-// ---------------------------------------------------------------------------
-
-const MEDUSA_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_URL ?? "http://localhost:9000"
-
-const MEDUSA_PUBLISHABLE_KEY = "pk_b5e6c02dcd611e3eac923182d4e4fbe4af845b7852439787d4e28f8b95cbe2e0"
-  // process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
-  // "pk_b5e6c02dcd611e3eac923182d4e4fbe4af845b7852439787d4e28f8b95cbe2e0";
+import { MEDUSA_URL, MEDUSA_PUBLISHABLE_KEY } from "./env"
 
 // ---------------------------------------------------------------------------
 // Core fetch helper
