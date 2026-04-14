@@ -231,6 +231,33 @@ export async function listProductReviews(
   return res.product_reviews ?? []
 }
 
+/** Upload images for a review — returns public URLs */
+export async function uploadReviewImages(
+  token: string,
+  files: File[]
+): Promise<{ url: string }[]> {
+  const form = new FormData()
+  files.forEach((f) => form.append("files", f))
+
+  const url = `${MEDUSA_URL}/store/product-reviews/uploads`
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "x-publishable-api-key": MEDUSA_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${token}`,
+    },
+    body: form,
+  })
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error((body as any).message ?? `Upload failed: ${res.status}`)
+  }
+
+  const data = await res.json() as { files: { url: string }[] }
+  return data.files.map((f) => ({ url: f.url }))
+}
+
 /** Submit or update a product review (requires a verified purchase) */
 export async function upsertProductReview(
   token: string,
@@ -239,13 +266,14 @@ export async function upsertProductReview(
     order_line_item_id: string
     rating: number
     content: string
+    images?: { url: string }[]
   }
 ): Promise<void> {
   await authRequest(
     "/store/product-reviews",
     {
       method: "POST",
-      body: JSON.stringify({ reviews: [{ ...data, images: [] }] }),
+      body: JSON.stringify({ reviews: [{ ...data, images: data.images ?? [] }] }),
     },
     token
   )

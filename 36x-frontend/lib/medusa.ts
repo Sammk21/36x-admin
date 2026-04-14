@@ -300,6 +300,34 @@ export type ProductReviewStats = {
   rating_count_5: number
 }
 
+export type PublicProductReview = {
+  id: string
+  name: string | null
+  rating: number
+  content: string | null
+  images: { id: string; url: string }[]
+  response: { id: string; content: string } | null
+  created_at: string
+}
+
+async function listPublicProductReviews(
+  productId: string,
+  next?: NextFetchRequestConfig
+): Promise<PublicProductReview[]> {
+  const res = await medusaRequest<{ product_reviews: PublicProductReview[] }>(
+    "/store/product-reviews",
+    {
+      "product_id[]": productId,
+      "status[]": "approved",
+      "fields": "*images,*response",
+      "limit": "50",
+      "offset": "0",
+    },
+    { next }
+  )
+  return res.product_reviews ?? []
+}
+
 async function listProductReviewStats(
   productId: string,
   next?: NextFetchRequestConfig
@@ -394,10 +422,11 @@ export const medusa = {
   productReviews: {
     /**
      * Fetch review stats for a product.
-     *
-     * @example
-     * const stats = await medusa.productReviews.listStats('prod_123')
      */
     listStats: listProductReviewStats,
+    /**
+     * Fetch approved public reviews for a product.
+     */
+    list: listPublicProductReviews,
   },
 }

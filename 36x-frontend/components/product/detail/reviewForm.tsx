@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { motion } from "framer-motion"
+import { useEffect, useRef, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "@/lib/store/auth"
-import { listOrders, listProductReviews, upsertProductReview } from "@/lib/auth"
+import { listOrders, listProductReviews, uploadReviewImages, upsertProductReview } from "@/lib/auth"
 
 // icon 1 = great (leftmost), icon 6 = bad (rightmost)
 // API rating: icon1→5, icon2→4, icon3→3, icon4→2, icon5→1, icon6→1
@@ -103,9 +103,30 @@ export default function ReviewForm({ productId, onSuccess }: Props) {
 
   const [selectedIcon, setSelectedIcon] = useState(0)  // icon index 1–6
   const [content, setContent] = useState("")
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
+
+    const combined = [...imageFiles, ...files].slice(0, 5) // max 5 images
+    setImageFiles(combined)
+    setImagePreviews(combined.map((f) => URL.createObjectURL(f)))
+
+    // reset input so the same file can be re-selected after removal
+    e.target.value = ""
+  }
+
+  const removeImage = (index: number) => {
+    URL.revokeObjectURL(imagePreviews[index])
+    setImageFiles((prev) => prev.filter((_, i) => i !== index))
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index))
+  }
 
    useEffect(() => {
     console.log("[ReviewForm] Auth State:", {
@@ -153,6 +174,8 @@ export default function ReviewForm({ productId, onSuccess }: Props) {
             }
           }
 
+          console.log("[ReviewForm] Purchase check result:", foundPurchase ?  foundPurchase : "Not found")
+
           if (!foundPurchase) {
             console.warn("[ReviewForm] ❌ No purchase found for product", { productId })
           }
@@ -190,11 +213,16 @@ export default function ReviewForm({ productId, onSuccess }: Props) {
     setError(null)
 
     try {
+      const images = imageFiles.length
+        ? await uploadReviewImages(token, imageFiles)
+        : []
+
       await upsertProductReview(token, {
         order_id: purchase.orderId,
         order_line_item_id: purchase.lineItemId,
         rating: apiRating,
         content,
+        images,
       })
       setSuccess(true)
       onSuccess?.()
@@ -282,6 +310,58 @@ export default function ReviewForm({ productId, onSuccess }: Props) {
             rows={4}
             placeholder="What did you think about this product?"
             className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-500 resize-none"
+          />
+        </div>
+
+        {/* Image upload */}
+        <div>
+          <p className="text-xs uppercase tracking-widest text-zinc-500 mb-3">
+            Photos <span className="normal-case text-zinc-600">(optional, up to 5)</span>
+          </p>
+
+          <div className="flex flex-wrap gap-3">
+            <AnimatePresence>
+              {imagePreviews.map((src, i) => (
+                <motion.div
+                  key={src}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.85 }}
+                  transition={{ duration: 0.2 }}
+                  className="relative w-20 h-20 rounded-lg overflow-hidden group"
+                >
+                  <img src={src} alt={`preview-${i}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(i)}
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-lg"
+                    aria-label="Remove image"
+                  >
+                    ×
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {imageFiles.length < 5 && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-20 h-20 rounded-lg border border-dashed border-zinc-700 hover:border-zinc-500 flex items-center justify-center text-zinc-600 hover:text-zinc-400 transition-colors text-2xl"
+                aria-label="Add photo"
+              >
+                +
+              </button>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleImageSelect}
           />
         </div>
 

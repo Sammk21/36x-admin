@@ -23,7 +23,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const reviewStats = await medusa.productReviews.listStats(product.id).catch(() => null)
+  const [reviewStats, reviews] = await Promise.all([
+    medusa.productReviews.listStats(product.id).catch(() => null),
+    medusa.productReviews.list(product.id).catch(() => []),
+  ])
+
+  console.log("Fetched product review stats:", reviewStats)
 
   return (
     <div className="bg-[#111111]">
@@ -37,7 +42,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       <ConceptSection />
       <GoesWellWith />
       <FeedStackSection />
-      <ReviewsSentiment productId={product.id} stats={reviewStats} />
+      <ReviewsSentiment productId={product.id} stats={reviewStats} reviews={reviews} />
     </div>
   );
 }

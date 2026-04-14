@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Progress } from "@/components/ui/progress";
-import type { ProductReviewStats } from "@/lib/medusa";
+import type { ProductReviewStats, PublicProductReview } from "@/lib/medusa";
 import ReviewForm from "./reviewForm";
+import ReviewList from "./reviewList";
 
 // Maps star ratings (5 → best, 1 → worst) to sentiment icons in order
 const SENTIMENT_ICONS = [
@@ -27,10 +27,13 @@ function getOverallSentiment(average: number | null) {
 type Props = {
   productId: string
   stats: ProductReviewStats | null
+  reviews: PublicProductReview[]
 }
 
-export default function ReviewsSentiment({ productId, stats }: Props) {
+export default function ReviewsSentiment({ productId, stats, reviews }: Props) {
   const total = stats?.review_count ?? 0
+
+  console.log(stats ? `[ReviewsSentiment] Stats for product ${productId}:` : `[ReviewsSentiment] No stats available for product ${productId}`, stats)
 
   // Build per-star percentages (0–100)
   const sentiments = SENTIMENT_ICONS.map(({ star, icon, label }) => {
@@ -50,7 +53,7 @@ export default function ReviewsSentiment({ productId, stats }: Props) {
   return (
     <section className="w-full h-full overflow-hidden text-white py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4">
-        <h2 className="font-black uppercase tracking-tighter text-4xl md:text-6xl">
+        <h2 className="font-display uppercase tracking-tighter text-4xl md:text-6xl">
           Reviews
         </h2>
 
@@ -98,18 +101,14 @@ export default function ReviewsSentiment({ productId, stats }: Props) {
                     className="w-12 h-12 transition-transform group-hover:scale-110"
                   />
 
-                  <div className="flex-1">
+                  <div className="flex-1 relative h-2 rounded-full bg-zinc-800 overflow-hidden">
                     <motion.div
-                      initial={{ width: 0 }}
-                      whileInView={{ width: "100%" }}
-                      transition={{ duration: 0.8, delay: i * 0.1 }}
+                      className="absolute inset-y-0 left-0 rounded-full bg-white"
+                      initial={{ width: "0%" }}
+                      whileInView={{ width: `${item.value}%` }}
+                      transition={{ duration: 0.8, delay: i * 0.1, ease: "easeOut" }}
                       viewport={{ once: true }}
-                    >
-                      <Progress
-                        value={item.value}
-                        className="h-2 bg-zinc-800"
-                      />
-                    </motion.div>
+                    />
                   </div>
 
                   <span className="text-xs text-zinc-500 w-8 text-right">{item.value}%</span>
@@ -119,6 +118,7 @@ export default function ReviewsSentiment({ productId, stats }: Props) {
           </div>
         )}
 
+        <ReviewList reviews={reviews} />
         <ReviewForm productId={productId} />
       </div>
     </section>
