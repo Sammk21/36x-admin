@@ -443,8 +443,11 @@ export interface ApiArtistCollaborationArtistCollaboration
     draftAndPublish: false;
   };
   attributes: {
+    bannerImages: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
     bio: Schema.Attribute.RichText;
-    coverImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -455,8 +458,8 @@ export interface ApiArtistCollaborationArtistCollaboration
       'api::artist-collaboration.artist-collaboration'
     > &
       Schema.Attribute.Private;
-    products: Schema.Attribute.Relation<'manyToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
+    socialLinks: Schema.Attribute.Component<'shared.social-links', false>;
     subtitle: Schema.Attribute.String;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -685,6 +688,8 @@ export interface ApiProductCollectionProductCollection
     draftAndPublish: false;
   };
   attributes: {
+    banner: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    button: Schema.Attribute.Component<'shared.button', true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -698,7 +703,10 @@ export interface ApiProductCollectionProductCollection
     medusaId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
+    subtitle: Schema.Attribute.String;
+    thumbnail: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -838,6 +846,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    Artist: Schema.Attribute.Component<'product.artist', false>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -857,7 +866,17 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::product-option.product-option'
     >;
+    product_collection: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::product-collection.product-collection'
+    >;
+    productDuo: Schema.Attribute.Component<'product.matchers', true>;
     publishedAt: Schema.Attribute.DateTime;
+    relatedProduct: Schema.Attribute.Component<
+      'product.related-product',
+      false
+    >;
+    specs: Schema.Attribute.Component<'product.product-spec', true>;
     subtitle: Schema.Attribute.String;
     thumbnail: Schema.Attribute.Media<'images'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
@@ -868,6 +887,77 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::product-variant.product-variant'
     >;
+  };
+}
+
+export interface ApiSentimentPickerSentimentPicker
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'sentiment_pickers';
+  info: {
+    displayName: 'Sentiment Picker';
+    pluralName: 'sentiment-pickers';
+    singularName: 'sentiment-picker';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::sentiment-picker.sentiment-picker'
+    > &
+      Schema.Attribute.Private;
+    medusaUserId: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    review: Schema.Attribute.Text;
+    sentiment_value: Schema.Attribute.Enumeration<
+      ['angry', 'worried', 'okay', 'happy', 'great']
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiSocialFeedPostSocialFeedPost
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'social_feed_posts';
+  info: {
+    description: 'Images shown in the homepage Instagram/social feed stacked slider';
+    displayName: 'Social Feed Post';
+    pluralName: 'social-feed-posts';
+    singularName: 'social-feed-post';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    display_order: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    is_active: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::social-feed-post.social-feed-post'
+    > &
+      Schema.Attribute.Private;
+    post_url: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    source: Schema.Attribute.Enumeration<['instagram', 'manual']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'manual'>;
+    subtitle: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1382,12 +1472,20 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::artist-collaboration.artist-collaboration': ApiArtistCollaborationArtistCollaboration;
+      'api::categories-listing-page.categories-listing-page': ApiCategoriesListingPageCategoriesListingPage;
+      'api::collection-timeline-page.collection-timeline-page': ApiCollectionTimelinePageCollectionTimelinePage;
+      'api::collections-listing-page.collections-listing-page': ApiCollectionsListingPageCollectionsListingPage;
+      'api::global-navigation.global-navigation': ApiGlobalNavigationGlobalNavigation;
+      'api::home-page.home-page': ApiHomePageHomePage;
       'api::product-category.product-category': ApiProductCategoryProductCategory;
       'api::product-collection.product-collection': ApiProductCollectionProductCollection;
       'api::product-option-value.product-option-value': ApiProductOptionValueProductOptionValue;
       'api::product-option.product-option': ApiProductOptionProductOption;
       'api::product-variant.product-variant': ApiProductVariantProductVariant;
       'api::product.product': ApiProductProduct;
+      'api::sentiment-picker.sentiment-picker': ApiSentimentPickerSentimentPicker;
+      'api::social-feed-post.social-feed-post': ApiSocialFeedPostSocialFeedPost;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

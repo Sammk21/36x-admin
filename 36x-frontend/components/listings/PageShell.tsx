@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const bgTileImage = "/images/collection-foregroud.png";
 
 interface PageShellProps {
-  topImageAlt?: string;
+  bgTileImage?: string;
   children?: React.ReactNode;
   className?: string;
 }
@@ -13,7 +13,7 @@ interface PageShellProps {
 export default function HomePageShell({
   children,
   className = "",
-  topImageAlt = "",
+ bgTileImage = "/images/collection-foregroud.png",
 }: PageShellProps) {
   const [showOn, setShowOn] = useState(true);
 

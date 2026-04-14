@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_home_collection_sections",
+  "info": {
+    "displayName": "CollectionSection"
+  },
+  "options": {},
+  "attributes": {
+    "sectionIntro": {
+      "type": "component",
+      "component": "shared.section-intro",
+      "repeatable": false
+    },
+    "product_collections": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product-collection.product-collection"
+    }
+  },
+  "config": {}
+}

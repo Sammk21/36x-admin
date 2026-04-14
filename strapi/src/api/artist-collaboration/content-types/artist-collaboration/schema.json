@@ -25,19 +25,20 @@
     "bio": {
       "type": "richtext"
     },
-    "coverImage": {
-      "type": "media",
-      "multiple": false,
-      "required": true,
-      "allowedTypes": [
-        "images"
-      ]
+    "socialLinks": {
+      "type": "component",
+      "component": "shared.social-links",
+      "repeatable": false
     },
-    "products": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::product.product",
-      "inversedBy": "artist_collaborations"
+    "bannerImages": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }

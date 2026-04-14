@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sentiment_pickers",
+  "info": {
+    "singularName": "sentiment-picker",
+    "pluralName": "sentiment-pickers",
+    "displayName": "Sentiment Picker"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "sentiment_value": {
+      "type": "enumeration",
+      "enum": [
+        "angry",
+        "worried",
+        "okay",
+        "happy",
+        "great"
+      ]
+    },
+    "review": {
+      "type": "text"
+    },
+    "medusaUserId": {
+      "type": "string"
+    }
+  }
+}

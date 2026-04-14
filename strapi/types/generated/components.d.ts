@@ -65,7 +65,7 @@ export interface HomeArtistCollab extends Struct.ComponentSchema {
       'oneToMany',
       'api::artist-collaboration.artist-collaboration'
     >;
-    sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
   };
 }
 
@@ -79,7 +79,7 @@ export interface HomeCategorySection extends Struct.ComponentSchema {
       'oneToMany',
       'api::product-category.product-category'
     >;
-    sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
   };
 }
 
@@ -128,6 +128,20 @@ export interface HomePageShell extends Struct.ComponentSchema {
   };
 }
 
+export interface ProductArtist extends Struct.ComponentSchema {
+  collectionName: 'components_product_artists';
+  info: {
+    displayName: 'Artist';
+  };
+  attributes: {
+    artist_collaborations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::artist-collaboration.artist-collaboration'
+    >;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+  };
+}
+
 export interface ProductConceptSlide extends Struct.ComponentSchema {
   collectionName: 'components_product_concept_slides';
   info: {
@@ -146,6 +160,18 @@ export interface ProductGalleryImage extends Struct.ComponentSchema {
     icon: 'landscape';
   };
   attributes: {};
+}
+
+export interface ProductMatchers extends Struct.ComponentSchema {
+  collectionName: 'components_product_matchers';
+  info: {
+    displayName: 'Matchers';
+  };
+  attributes: {
+    productOne: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
+    productTwo: Schema.Attribute.Relation<'oneToOne', 'api::product.product'>;
+    Result: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+  };
 }
 
 export interface ProductProductPairing extends Struct.ComponentSchema {
@@ -167,6 +193,17 @@ export interface ProductProductSpec extends Struct.ComponentSchema {
   };
   attributes: {
     text: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
+export interface ProductRelatedProduct extends Struct.ComponentSchema {
+  collectionName: 'components_product_related_products';
+  info: {
+    displayName: 'Related Product';
+  };
+  attributes: {
+    products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
   };
 }
 
@@ -324,6 +361,20 @@ export interface SharedSectionIntro extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedSocialLinks extends Struct.ComponentSchema {
+  collectionName: 'components_shared_social_links';
+  info: {
+    displayName: 'Social Links';
+  };
+  attributes: {
+    facebook: Schema.Attribute.Text;
+    instagram: Schema.Attribute.Text;
+    twitter: Schema.Attribute.Text;
+    Whatsapp: Schema.Attribute.Integer;
+    youtube: Schema.Attribute.Text;
+  };
+}
+
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
@@ -336,10 +387,13 @@ declare module '@strapi/strapi' {
       'home.collection-section': HomeCollectionSection;
       'home.feed-section': HomeFeedSection;
       'home.page-shell': HomePageShell;
+      'product.artist': ProductArtist;
       'product.concept-slide': ProductConceptSlide;
       'product.gallery-image': ProductGalleryImage;
+      'product.matchers': ProductMatchers;
       'product.product-pairing': ProductProductPairing;
       'product.product-spec': ProductProductSpec;
+      'product.related-product': ProductRelatedProduct;
       'product.sentiment-bar': ProductSentimentBar;
       'shared.button': SharedButton;
       'shared.category-section': SharedCategorySection;
@@ -352,6 +406,7 @@ declare module '@strapi/strapi' {
       'shared.nav-dropdown-section': SharedNavDropdownSection;
       'shared.nav-item': SharedNavItem;
       'shared.section-intro': SharedSectionIntro;
+      'shared.social-links': SharedSocialLinks;
     }
   }
 }

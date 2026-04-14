@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_product_artists",
+  "info": {
+    "displayName": "Artist"
+  },
+  "options": {},
+  "attributes": {
+    "sectionIntro": {
+      "type": "component",
+      "component": "shared.section-intro",
+      "repeatable": true
+    },
+    "artist_collaborations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::artist-collaboration.artist-collaboration"
+    }
+  },
+  "config": {}
+}

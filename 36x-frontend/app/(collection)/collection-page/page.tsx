@@ -1,22 +1,37 @@
 import PageShell from "@/components/listings/PageShell";
 import Hero from "@/components/listings/ListingHero";
-import Section from "@/components/listings/collection/collectonSection";
-import ProductGrid from "@/components/listings/collection/collectonSection";
 import { Masonry } from "@/components/home/Masonry";
+import { strapi, strapiImage } from "@/lib/strapi";
 
-const images = Array.from({ length: 9 }, (_, i) => {
-  const isLandscape = i % 2 === 0;
-  const width = isLandscape ? 800 : 600;
-  const height = isLandscape ? 600 : 800;
-  return `https://picsum.photos/seed/${i + 1}/${width}/${height}`;
-});
+export default async function CollectionPage() {
+  const page = await strapi.pages.collectionsListing({ revalidate: 3600 });
+  const col = page.collection?.product_collection ?? null;
+  const heroBottom = strapiImage(page.Hero?.bannerImage?.[0]) ?? undefined;
+  const heroTop = page.Hero?.overlayImage ?? undefined;
+  const bgTileImage = strapiImage(page.pageShell?.bgTileImage) ?? undefined;
+  const sectionTitle =
+    page.collection?.sectionIntro?.[0]?.title ?? col?.title ?? "Collection";
+  const sectionSubtitle =
+    page.collection?.sectionIntro?.[0]?.subtitle ?? col?.subtitle ?? "";
+  const masonryProducts = (col?.products ?? []).map((p) => ({
+    id: p.id,
+    title: p.title,
+    handle: p.handle,
+    thumbnailUrl: strapiImage(p.thumbnail),
+    collectionLabel: col?.title ?? undefined,
+  }));
 
-export default function CollectionPage() {
   return (
     <>
-      <Hero />
-      <PageShell>
-        <Masonry columns={2} description="Explore our latest collection of curated pieces." images={images} title="Coldplay" className="my-0" />
+      <Hero bottomImage={heroBottom} topImage={heroTop} />
+      <PageShell bgTileImage={bgTileImage}>
+        <Masonry
+          columns={3}
+          title={sectionTitle}
+          description={sectionSubtitle}
+          products={masonryProducts}
+          className="my-0"
+        />
       </PageShell>
     </>
   );

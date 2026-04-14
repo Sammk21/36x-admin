@@ -8,7 +8,7 @@
     "sectionIntro": {
       "type": "component",
       "component": "shared.section-intro",
-      "repeatable": false
+      "repeatable": true
     },
     "artist_collaborations": {
       "type": "relation",

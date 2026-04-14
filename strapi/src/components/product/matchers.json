@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_product_matchers",
+  "info": {
+    "displayName": "Matchers"
+  },
+  "options": {},
+  "attributes": {
+    "productOne": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::product.product"
+    },
+    "productTwo": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::product.product"
+    },
+    "Result": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  },
+  "config": {}
+}

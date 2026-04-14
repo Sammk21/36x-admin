@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import FooterGraffiti from "@/components/layout/footer";
 import Navbar from "@/components/layout/navbar";
+import { CartProvider } from "@/lib/store/cart";
+import { AuthProvider } from "@/lib/store/auth";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -35,7 +37,11 @@ export default function RootLayout({
       <body
         className={`${raleway.variable} ${bebasNeue.variable} antialiased bg-black`}
       >
-        {children}
+        <AuthProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

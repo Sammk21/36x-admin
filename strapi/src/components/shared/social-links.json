@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_shared_social_links",
+  "info": {
+    "displayName": "Social Links"
+  },
+  "options": {},
+  "attributes": {
+    "instagram": {
+      "type": "text"
+    },
+    "facebook": {
+      "type": "text"
+    },
+    "youtube": {
+      "type": "text"
+    },
+    "twitter": {
+      "type": "text"
+    },
+    "Whatsapp": {
+      "type": "integer"
+    }
+  },
+  "config": {}
+}

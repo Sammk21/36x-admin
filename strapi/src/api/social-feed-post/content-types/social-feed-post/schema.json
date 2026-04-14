@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "social_feed_posts",
+  "info": {
+    "singularName": "social-feed-post",
+    "pluralName": "social-feed-posts",
+    "displayName": "Social Feed Post",
+    "description": "Images shown in the homepage Instagram/social feed stacked slider"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "source": {
+      "type": "enumeration",
+      "required": true,
+      "default": "manual",
+      "enum": [
+        "instagram",
+        "manual"
+      ]
+    },
+    "post_url": {
+      "type": "string"
+    },
+    "display_order": {
+      "type": "integer",
+      "default": 0
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

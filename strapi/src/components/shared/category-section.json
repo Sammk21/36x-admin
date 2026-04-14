@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_shared_category_sections",
+  "info": {
+    "displayName": "Category Section",
+    "icon": "dashboard",
+    "description": "A category block with heading, subheading, view link and product image carousel"
+  },
+  "options": {},
+  "attributes": {}
+}

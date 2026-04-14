@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_shared_section_intros",
+  "info": {
+    "displayName": "SectionIntro"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "text"
+    }
+  },
+  "config": {}
+}

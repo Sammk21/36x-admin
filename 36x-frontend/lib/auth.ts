@@ -1,0 +1,254 @@
+// ---------------------------------------------------------------------------
+// Medusa v2 Customer Auth — Store API
+// ---------------------------------------------------------------------------
+
+const MEDUSA_URL =
+  process.env.NEXT_PUBLIC_MEDUSA_URL ?? "http://localhost:9000"
+
+const MEDUSA_PUBLISHABLE_KEY =
+  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
+  "pk_fd48be98158d52808635a4ab75d68b1721c0403741b31fadd63d5d26f6a82a7b";
+
+const AUTH_TOKEN_KEY = "36x_auth_token"
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export type MedusaCustomer = {
+  id: string
+  email: string
+  first_name: string | null
+  last_name: string | null
+  phone: string | null
+  has_account: boolean
+  metadata: Record<string, unknown> | null
+}
+
+export type MedusaAddress = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  address_1: string | null
+  address_2: string | null
+  city: string | null
+  country_code: string | null
+  province: string | null
+  postal_code: string | null
+  phone: string | null
+  is_default_shipping: boolean
+  is_default_billing: boolean
+}
+
+export type MedusaOrder = {
+  id: string
+  display_id: number
+  status: string
+  fulfillment_status: string
+  payment_status: string
+  created_at: string
+  total: number
+  currency_code: string
+  items: {
+    id: string
+    title: string
+    quantity: number
+    unit_price: number
+    total: number
+    thumbnail: string | null
+  }[]
+}
+
+// ---------------------------------------------------------------------------
+// Core helper
+// ---------------------------------------------------------------------------
+
+async function authRequest<T>(
+  path: string,
+  options: RequestInit = {},
+  token?: string | null
+): Promise<T> {
+  const url = `${MEDUSA_URL}${path}`
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(MEDUSA_PUBLISHABLE_KEY
+      ? { "x-publishable-api-key": MEDUSA_PUBLISHABLE_KEY }
+      : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...((options.headers as Record<string, string>) ?? {}),
+  }
+
+  const res = await fetch(url, { ...options, headers })
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(
+      (body as { message?: string }).message ??
+        `Auth API ${res.status} — ${url}`
+    )
+  }
+
+  return res.json() as Promise<T>
+}
+
+// ---------------------------------------------------------------------------
+// Token helpers (localStorage)
+// ---------------------------------------------------------------------------
+
+export function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem(AUTH_TOKEN_KEY)
+}
+
+export function setStoredToken(token: string): void {
+  localStorage.setItem(AUTH_TOKEN_KEY, token)
+}
+
+export function clearStoredToken(): void {
+  localStorage.removeItem(AUTH_TOKEN_KEY)
+}
+
+// ---------------------------------------------------------------------------
+// Auth API
+// ---------------------------------------------------------------------------
+
+/** Register a new customer — returns a JWT token */
+export async function registerCustomer(payload: {
+  email: string
+  password: string
+  first_name: string
+  last_name: string
+  phone?: string
+}): Promise<string> {
+  // Step 1: create auth identity
+  const { token } = await authRequest<{ token: string }>(
+    "/auth/customer/emailpass/register",
+    {
+      method: "POST",
+      body: JSON.stringify({ email: payload.email, password: payload.password }),
+    }
+  )
+
+  // Step 2: create customer profile (using the registration token)
+  await authRequest<{ customer: MedusaCustomer }>(
+    "/store/customers",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        email: payload.email,
+        first_name: payload.first_name,
+        last_name: payload.last_name,
+        phone: payload.phone,
+      }),
+    },
+    token
+  )
+
+  // Step 3: log in to get a fully resolved token with actor_id bound
+  // The registration token has no actor_id so /store/customers/me returns 401
+  const { token: resolvedToken } = await authRequest<{ token: string }>(
+    "/auth/customer/emailpass",
+    {
+      method: "POST",
+      body: JSON.stringify({ email: payload.email, password: payload.password }),
+    }
+  )
+
+  return resolvedToken
+}
+
+/** Login — returns a JWT token */
+export async function loginCustomer(
+  email: string,
+  password: string
+): Promise<string> {
+  const { token } = await authRequest<{ token: string }>(
+    "/auth/customer/emailpass",
+    {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }
+  )
+  return token
+}
+
+/** Fetch the current customer using a token */
+export async function getCustomer(token: string): Promise<MedusaCustomer> {
+  const res = await authRequest<{ customer: MedusaCustomer }>(
+    "/store/customers/me",
+    {},
+    token
+  )
+  return res.customer
+}
+
+/** Update customer profile */
+export async function updateCustomer(
+  token: string,
+  payload: Partial<Pick<MedusaCustomer, "first_name" | "last_name" | "phone">>
+): Promise<MedusaCustomer> {
+  const res = await authRequest<{ customer: MedusaCustomer }>(
+    "/store/customers/me",
+    { method: "POST", body: JSON.stringify(payload) },
+    token
+  )
+  return res.customer
+}
+
+/** List customer orders */
+export async function listOrders(token: string): Promise<MedusaOrder[]> {
+  const res = await authRequest<{ orders: MedusaOrder[] }>(
+    "/store/orders?fields=*items",
+    {},
+    token
+  )
+  return res.orders
+}
+
+/** List customer addresses */
+export async function listAddresses(token: string): Promise<MedusaAddress[]> {
+  const res = await authRequest<{ addresses: MedusaAddress[] }>(
+    "/store/customers/me/addresses",
+    {},
+    token
+  )
+  return res.addresses
+}
+
+/** Add an address */
+export async function addAddress(
+  token: string,
+  payload: Omit<MedusaAddress, "id" | "is_default_shipping" | "is_default_billing">
+): Promise<MedusaAddress> {
+  const res = await authRequest<{ address: MedusaAddress }>(
+    "/store/customers/me/addresses",
+    { method: "POST", body: JSON.stringify(payload) },
+    token
+  )
+  return res.address
+}
+
+/** Delete an address */
+export async function deleteAddress(
+  token: string,
+  addressId: string
+): Promise<void> {
+  await authRequest(
+    `/store/customers/me/addresses/${addressId}`,
+    { method: "DELETE" },
+    token
+  )
+}
+
+/** Attach cart to a customer after login */
+export async function attachCartToCustomer(
+  token: string,
+  cartId: string
+): Promise<void> {
+  await authRequest(
+    `/store/carts/${cartId}`,
+    { method: "POST", body: JSON.stringify({ customer_id: undefined }) },
+    token
+  )
+}

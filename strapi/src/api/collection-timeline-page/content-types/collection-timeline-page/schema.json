@@ -1,0 +1,26 @@
+{
+  "kind": "singleType",
+  "collectionName": "collection_timeline_page",
+  "info": {
+    "singularName": "collection-timeline-page",
+    "pluralName": "collection-timeline-pages",
+    "displayName": "Collection Timeline Page",
+    "description": "Page-level settings for /collection-timeline — the actual chapter data lives on each Product Collection entry"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "sectionIntro": {
+      "type": "component",
+      "component": "shared.section-intro",
+      "repeatable": true
+    },
+    "collectionTimeline": {
+      "type": "component",
+      "component": "collection.collection-timeline",
+      "repeatable": true
+    }
+  }
+}

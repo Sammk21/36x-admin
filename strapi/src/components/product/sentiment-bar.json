@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_product_sentiment_bars",
+  "info": {
+    "displayName": "Sentiment Bar",
+    "icon": "emotionHappy",
+    "description": "A single sentiment/emotion bar entry for the review sentiment section"
+  },
+  "options": {},
+  "attributes": {}
+}

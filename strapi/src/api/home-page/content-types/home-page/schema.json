@@ -1,0 +1,51 @@
+{
+  "kind": "singleType",
+  "collectionName": "home_page",
+  "info": {
+    "singularName": "home-page",
+    "pluralName": "home-pages",
+    "displayName": "Home Page",
+    "description": "All editable content for the homepage"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "PageShell": {
+      "type": "component",
+      "component": "home.page-shell",
+      "repeatable": false
+    },
+    "HomeHero": {
+      "type": "component",
+      "component": "shared.hero",
+      "repeatable": false
+    },
+    "collection": {
+      "type": "component",
+      "component": "home.collection-section",
+      "repeatable": false
+    },
+    "artistCollab": {
+      "type": "component",
+      "component": "home.artist-collab",
+      "repeatable": false
+    },
+    "masonry_products": {
+      "type": "component",
+      "component": "shared.masonry-image",
+      "repeatable": false
+    },
+    "category": {
+      "type": "component",
+      "component": "home.category-section",
+      "repeatable": false
+    },
+    "feedSection": {
+      "type": "component",
+      "component": "home.feed-section",
+      "repeatable": true
+    }
+  }
+}

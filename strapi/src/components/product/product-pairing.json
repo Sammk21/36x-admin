@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_product_pairings",
+  "info": {
+    "displayName": "Product Pairing",
+    "icon": "plus",
+    "description": "A Goes Well With pairing row: item A + item B = result look"
+  },
+  "options": {},
+  "attributes": {}
+}

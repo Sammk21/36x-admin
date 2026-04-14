@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_product_gallery_images",
+  "info": {
+    "displayName": "Gallery Image",
+    "icon": "landscape",
+    "description": "A single image entry in the product gallery with layout aspect hint"
+  },
+  "options": {},
+  "attributes": {}
+}

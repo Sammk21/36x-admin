@@ -10,6 +10,7 @@ interface PageShellProps {
   topImage?: string;
   topImageOverlay?: string;
   topImageAlt?: string;
+  bgTileImage?: string;
   children?: React.ReactNode;
   className?: string;
 }
@@ -17,6 +18,7 @@ interface PageShellProps {
 export default function HomePageShell({
   topImage = "/images/top-off.png",
   topImageOverlay = "/images/top-on.jpg",
+  bgTileImage = "/images/bottom.jpg",
   children,
   className = "",
   topImageAlt = "",

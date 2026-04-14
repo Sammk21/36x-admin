@@ -35,17 +35,17 @@
       "type": "media",
       "multiple": true,
       "required": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     },
     "thumbnail": {
       "type": "media",
       "multiple": false,
       "required": false,
-      "allowedTypes": ["images"]
-    },
-    "locale": {
-      "type": "string",
-      "default": "en"
+      "allowedTypes": [
+        "images"
+      ]
     },
     "variants": {
       "type": "relation",
@@ -58,7 +58,32 @@
       "relation": "oneToMany",
       "target": "api::product-option.product-option",
       "mappedBy": "product"
+    },
+    "specs": {
+      "type": "component",
+      "component": "product.product-spec",
+      "repeatable": true
+    },
+    "product_collection": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::product-collection.product-collection",
+      "inversedBy": "products"
+    },
+    "Artist": {
+      "type": "component",
+      "component": "product.artist",
+      "repeatable": false
+    },
+    "relatedProduct": {
+      "type": "component",
+      "component": "product.related-product",
+      "repeatable": false
+    },
+    "productDuo": {
+      "type": "component",
+      "component": "product.matchers",
+      "repeatable": true
     }
   }
 }
-

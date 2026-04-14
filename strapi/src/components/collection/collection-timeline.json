@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_collection_collection_timelines",
+  "info": {
+    "displayName": "collectionTimeline"
+  },
+  "options": {},
+  "attributes": {
+    "product_collection": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::product-collection.product-collection"
+    },
+    "chapterTitle": {
+      "type": "string"
+    },
+    "chapterNumber": {
+      "type": "integer",
+      "unique": true
+    },
+    "chapterBanner": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  },
+  "config": {}
+}

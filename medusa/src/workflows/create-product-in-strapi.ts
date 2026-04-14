@@ -1,22 +1,23 @@
-import { 
-  createWorkflow, 
+import {
+  createWorkflow,
   WorkflowResponse,
   transform,
   when,
 } from "@medusajs/framework/workflows-sdk"
-import { 
-  CreateProductInStrapiInput, 
+import {
+  CreateProductInStrapiInput,
   createProductInStrapiStep
 } from "./steps/create-product-in-strapi"
 import { uploadImagesToStrapiStep } from "./steps/upload-images-to-strapi"
-import { 
-  useQueryGraphStep, 
-  updateProductsWorkflow, 
-  acquireLockStep, 
+import {
+  useQueryGraphStep,
+  updateProductsWorkflow,
+  acquireLockStep,
   releaseLockStep
 } from "@medusajs/medusa/core-flows"
 import { createOptionsInStrapiWorkflow } from "./create-options-in-strapi"
 import { createVariantsInStrapiWorkflow } from "./create-variants-in-strapi"
+import { syncProductRelationsInStrapiStep } from "./steps/sync-product-relations-in-strapi"
 
 export type CreateProductInStrapiWorkflowInput = {
   id: string
@@ -41,6 +42,8 @@ export const createProductInStrapiWorkflow = createWorkflow(
         "thumbnail",
         "variants.id",
         "options.id",
+        "categories.id",
+        "collection.id",
       ],
       filters: {
         id: input.id,
@@ -91,8 +94,6 @@ export const createProductInStrapiWorkflow = createWorkflow(
       }
     )
 
-    console.log(productWithImages, "productImages")
-
     const strapiProduct = createProductInStrapiStep({
       product: productWithImages,
     } as CreateProductInStrapiInput)
@@ -136,6 +137,15 @@ export const createProductInStrapiWorkflow = createWorkflow(
         productId: input.id
       }
     })
+
+    // Sync category and collection relations to Strapi
+    const relationInput = transform({ products }, (data) => ({
+      productId: data.products[0].id,
+      categoryIds: (data.products[0].categories || []).map((c: any) => c.id),
+      collectionId: data.products[0].collection?.id ?? null,
+    }))
+
+    syncProductRelationsInStrapiStep(relationInput)
 
     return new WorkflowResponse(strapiProduct)
   }
