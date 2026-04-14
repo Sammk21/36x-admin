@@ -489,7 +489,7 @@ export interface ApiCategoriesListingPageCategoriesListingPage
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    hero: Schema.Attribute.Component<'shared.hero', true>;
+    hero: Schema.Attribute.Component<'shared.hero', false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -534,7 +534,7 @@ export interface ApiCollectionTimelinePageCollectionTimelinePage
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -673,6 +673,7 @@ export interface ApiProductCategoryProductCategory
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -694,7 +695,8 @@ export interface ApiProductCollectionProductCollection
   };
   attributes: {
     banner: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
-    button: Schema.Attribute.Component<'shared.button', true>;
+    button: Schema.Attribute.Component<'shared.button', false>;
+    chapter: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -710,6 +712,10 @@ export interface ApiProductCollectionProductCollection
       Schema.Attribute.Unique;
     products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
+    story: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
     subtitle: Schema.Attribute.String;
     thumbnail: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
@@ -877,6 +883,10 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::product-option.product-option'
     >;
+    product_category: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::product-category.product-category'
+    >;
     product_collection: Schema.Attribute.Relation<
       'manyToOne',
       'api::product-collection.product-collection'
@@ -887,13 +897,6 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'product.related-product',
       false
     >;
-    review_dominant_icon: Schema.Attribute.String;
-    review_headline: Schema.Attribute.String;
-    review_sentiment_bars: Schema.Attribute.Component<
-      'product.sentiment-bar',
-      true
-    >;
-    review_summary: Schema.Attribute.Text;
     specs: Schema.Attribute.Component<'product.product-spec', true>;
     subtitle: Schema.Attribute.String;
     thumbnail: Schema.Attribute.Media<'images'>;

@@ -15,7 +15,7 @@
     "hero": {
       "type": "component",
       "component": "shared.hero",
-      "repeatable": true
+      "repeatable": false
     },
     "product_category": {
       "type": "relation",

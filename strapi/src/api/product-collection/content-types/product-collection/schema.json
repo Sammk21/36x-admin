@@ -28,11 +28,15 @@
       "type": "uid",
       "targetField": "title"
     },
-    "products": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::product.product",
-      "mappedBy": "product_collection"
+    "chapter": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     },
     "banner": {
       "type": "media",
@@ -54,10 +58,26 @@
         "audios"
       ]
     },
+    "story": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "products": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product.product",
+      "mappedBy": "product_collection"
+    },
     "button": {
       "type": "component",
       "component": "shared.button",
-      "repeatable": true
+      "repeatable": false
     }
   }
 }

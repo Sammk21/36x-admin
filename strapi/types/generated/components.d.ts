@@ -10,7 +10,7 @@ export interface CategoryCategoryMasonry extends Struct.ComponentSchema {
       'oneToOne',
       'api::product-collection.product-collection'
     >;
-    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
   };
 }
 
@@ -65,7 +65,7 @@ export interface HomeArtistCollab extends Struct.ComponentSchema {
       'oneToMany',
       'api::artist-collaboration.artist-collaboration'
     >;
-    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
   };
 }
 
@@ -409,7 +409,7 @@ export interface SharedSocialLinks extends Struct.ComponentSchema {
     facebook: Schema.Attribute.Text;
     instagram: Schema.Attribute.Text;
     twitter: Schema.Attribute.Text;
-    Whatsapp: Schema.Attribute.Integer;
+    Whatsapp: Schema.Attribute.String;
     youtube: Schema.Attribute.Text;
   };
 }

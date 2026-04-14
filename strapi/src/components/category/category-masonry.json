@@ -8,7 +8,7 @@
     "sectionIntro": {
       "type": "component",
       "component": "shared.section-intro",
-      "repeatable": true
+      "repeatable": false
     },
     "product_collection": {
       "type": "relation",
