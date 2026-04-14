@@ -23,6 +23,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  const reviewStats = await medusa.productReviews.listStats(product.id).catch(() => null)
+
   return (
     <div className="bg-[#111111]">
       <ProductDetail
@@ -35,7 +37,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       <ConceptSection />
       <GoesWellWith />
       <FeedStackSection />
-      <ReviewsSentiment />
+      <ReviewsSentiment productId={product.id} stats={reviewStats} />
     </div>
   );
 }

@@ -21,9 +21,9 @@ import type {
 const MEDUSA_URL =
   process.env.NEXT_PUBLIC_MEDUSA_URL ?? "http://localhost:9000"
 
-const MEDUSA_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
-  "pk_fd48be98158d52808635a4ab75d68b1721c0403741b31fadd63d5d26f6a82a7b";
+const MEDUSA_PUBLISHABLE_KEY = "pk_b5e6c02dcd611e3eac923182d4e4fbe4af845b7852439787d4e28f8b95cbe2e0"
+  // process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
+  // "pk_b5e6c02dcd611e3eac923182d4e4fbe4af845b7852439787d4e28f8b95cbe2e0";
 
 // ---------------------------------------------------------------------------
 // Core fetch helper
@@ -286,6 +286,33 @@ async function listCategories(
 }
 
 // ---------------------------------------------------------------------------
+// product reviews
+// ---------------------------------------------------------------------------
+
+export type ProductReviewStats = {
+  product_id: string
+  average_rating: number | null
+  review_count: number
+  rating_count_1: number
+  rating_count_2: number
+  rating_count_3: number
+  rating_count_4: number
+  rating_count_5: number
+}
+
+async function listProductReviewStats(
+  productId: string,
+  next?: NextFetchRequestConfig
+): Promise<ProductReviewStats | null> {
+  const res = await medusaRequest<{ product_review_stats: ProductReviewStats[] }>(
+    "/store/product-review-stats",
+    { "product_id[]": productId },
+    { next }
+  )
+  return res.product_review_stats?.[0] ?? null
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -362,5 +389,15 @@ export const medusa = {
      * const { product_categories } = await medusa.categories.list({ withStrapi: true })
      */
     list: listCategories,
+  },
+
+  productReviews: {
+    /**
+     * Fetch review stats for a product.
+     *
+     * @example
+     * const stats = await medusa.productReviews.listStats('prod_123')
+     */
+    listStats: listProductReviewStats,
   },
 }

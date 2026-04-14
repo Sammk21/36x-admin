@@ -5,9 +5,9 @@
 const MEDUSA_URL =
   process.env.NEXT_PUBLIC_MEDUSA_URL ?? "http://localhost:9000"
 
-const MEDUSA_PUBLISHABLE_KEY =
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
-  "pk_fd48be98158d52808635a4ab75d68b1721c0403741b31fadd63d5d26f6a82a7b";
+const MEDUSA_PUBLISHABLE_KEY = "pk_b5e6c02dcd611e3eac923182d4e4fbe4af845b7852439787d4e28f8b95cbe2e0"
+  // process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ??
+  // "pk_fd48be98158d52808635a4ab75d68b1721c0403741b31fadd63d5d26f6a82a7b";
 
 const AUTH_TOKEN_KEY = "36x_auth_token"
 
@@ -56,7 +56,19 @@ export type MedusaOrder = {
     unit_price: number
     total: number
     thumbnail: string | null
+    product_id: string | null
   }[]
+}
+
+export type ProductReview = {
+  id: string
+  order_id: string
+  order_line_item_id: string
+  product_id: string
+  rating: number
+  content: string
+  status: "pending" | "approved" | "flagged"
+  created_at: string
 }
 
 // ---------------------------------------------------------------------------
@@ -199,11 +211,44 @@ export async function updateCustomer(
 /** List customer orders */
 export async function listOrders(token: string): Promise<MedusaOrder[]> {
   const res = await authRequest<{ orders: MedusaOrder[] }>(
-    "/store/orders?fields=*items",
+    "/store/orders?fields=*items,items.product_id",
     {},
     token
   )
   return res.orders
+}
+
+/** List reviews for a product scoped to the current customer */
+export async function listProductReviews(
+  token: string,
+  productId: string
+): Promise<ProductReview[]> {
+  const res = await authRequest<{ product_reviews: ProductReview[] }>(
+    `/store/product-reviews?product_id[]=${productId}`,
+    {},
+    token
+  )
+  return res.product_reviews ?? []
+}
+
+/** Submit or update a product review (requires a verified purchase) */
+export async function upsertProductReview(
+  token: string,
+  data: {
+    order_id: string
+    order_line_item_id: string
+    rating: number
+    content: string
+  }
+): Promise<void> {
+  await authRequest(
+    "/store/product-reviews",
+    {
+      method: "POST",
+      body: JSON.stringify({ reviews: [{ ...data, images: [] }] }),
+    },
+    token
+  )
 }
 
 /** List customer addresses */
