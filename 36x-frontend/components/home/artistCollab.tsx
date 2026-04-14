@@ -15,25 +15,18 @@ gsap.registerPlugin(CustomEase, ScrollTrigger);
 CustomEase.create("elastic-css", ".2, 1.33, .25, 1");
 CustomEase.create("ease-in-css", ".25, 1, 0.1, 1");
 
-const collaborations = [
-  {
-    title: "HOOD MONARCHY",
-    subtitle: "CREW 404, Graffiti Collective",
-    image: "/images/img1.png",
-  },
-  {
-    title: "HOOD MONARCHY",
-    subtitle: "CREW 404, Graffiti Collective",
-    image: "/images/img2.png",
-  },
-  {
-    title: "HOOD MONARCHY",
-    subtitle: "CREW 404, Graffiti Collective",
-    image: "/images/img3.png",
-  },
-];
+interface CollaborationItem {
+  title: string;
+  subtitle: string | null;
+  imageUrl: string;
+  handle: string;
+}
 
-export default function ArtistCollaborations() {
+interface ArtistCollaborationsProps {
+  collaborations?: CollaborationItem[];
+}
+
+export default function ArtistCollaborations({ collaborations = [] }: ArtistCollaborationsProps) {
   const sectionRef = useRef<HTMLElement>(null);
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -168,7 +161,7 @@ export default function ArtistCollaborations() {
           <div className="flex md:grid md:grid-cols-3 md:gap-10">
             {collaborations.map((item, index) => (
               <Link
-                href={`/product/${index}`}
+                href={`/artist/${item.handle}`}
                 key={index}
                 className="cursor-pointer shrink-0
            w-[72vw] max-w-[320px] ml-5 last:mr-5
@@ -180,7 +173,7 @@ export default function ArtistCollaborations() {
                 >
                   <div className="relative aspect-389/510 w-full">
                     <Image
-                      src={item.image}
+                      src={item.imageUrl}
                       alt={item.title}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-105"

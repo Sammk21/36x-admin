@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 import { Button } from "../ui/button";
+import Link from "next/link";
 
 gsap.registerPlugin(CustomEase);
 
@@ -15,44 +16,17 @@ CustomEase.create("ease-in-css", ".25, 1, 0.1, 1");
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface CollectionItem {
+export interface CollectionItem {
   id: string;
   title: string;
   tag: string;
   image: string;
+  handle?: string;
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-const COLLECTIONS: CollectionItem[] = [
-  {
-    id: "1",
-    title: "Off-White™ × Bulls",
-    tag: "New Drop",
-    image: "/images/img4.png",
-  },
-  {
-    id: "2",
-    title: "Varsity Heritage",
-    tag: "Limited",
-    image: "/images/img5.png",
-  },
-  {
-    id: "3",
-    title: "Canvas Series 03",
-    tag: "Exclusive",
-    image: "/images/img6.png",
-  },
-  {
-    id: "4",
-    title: "Street Archive",
-    tag: "Archive",
-    image: "/images/img1.png",
-  },
-];
-
-const SlideCard: React.FC<{ item: CollectionItem }> = ({ item }) => (
-  <div className="relative first:ml-5 w-full overflow-hidden aspect-12/17 rounded-3xl">
+const SlideCard: React.FC<{ item: CollectionItem; href?: string }> = ({ item, href }) => {
+  const inner = (
+    <div className="relative first:ml-5 w-full overflow-hidden aspect-12/17 rounded-3xl">
     {/* Image */}
     <img
       src={item.image}
@@ -82,7 +56,9 @@ const SlideCard: React.FC<{ item: CollectionItem }> = ({ item }) => (
       </p>
     </div>
   </div>
-);
+  );
+  return href ? <Link href={href}>{inner}</Link> : inner;
+};
 
 // ─── Arrow Icon ───────────────────────────────────────────────────────────────
 
@@ -106,7 +82,11 @@ const ArrowIcon: React.FC<{ dir?: "left" | "right" }> = ({ dir = "right" }) => (
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-const HeroCollection: React.FC = () => {
+interface HeroCollectionProps {
+  collections?: CollectionItem[];
+}
+
+const HeroCollection: React.FC<HeroCollectionProps> = ({ collections = [] }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const autoplay = useRef(Autoplay({ delay: 3200, stopOnInteraction: false }));
 
@@ -261,12 +241,12 @@ const HeroCollection: React.FC = () => {
         <div className="flex relative justify-center flex-1 z-10 items-center">
           <div ref={emblaRef} className="w-full h-full overflow-hidden">
             <div className="flex">
-              {COLLECTIONS.map((item) => (
+              {collections.map((item) => (
                 <div
                   key={item.id}
                   className="hero-col-card mr-3.5 min-w-0 flex-[0_0_230px] md:flex-[0_0_250px] lg:flex-[0_0_290px] xl:flex-[0_0_330px] will-change-transform"
                 >
-                  <SlideCard item={item} />
+                  <SlideCard item={item} href={item.handle ? `/collections/${item.handle}` : undefined} />
                 </div>
               ))}
             </div>

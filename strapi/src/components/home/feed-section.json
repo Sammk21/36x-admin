@@ -10,29 +10,10 @@
       "component": "shared.section-intro",
       "repeatable": false
     },
-    "title": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "media": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
-    },
-    "postLink": {
-      "type": "text"
-    },
-    "button": {
+    "posts": {
       "type": "component",
-      "component": "shared.button",
-      "repeatable": false
+      "component": "home.posts",
+      "repeatable": true
     }
   },
   "config": {}

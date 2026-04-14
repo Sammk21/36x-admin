@@ -6,5 +6,19 @@
     "description": "A single image entry in the product gallery with layout aspect hint"
   },
   "options": {},
-  "attributes": {}
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "alt": {
+      "type": "string"
+    },
+    "aspect": {
+      "type": "enumeration",
+      "enum": ["tall", "wide", "square"]
+    }
+  }
 }

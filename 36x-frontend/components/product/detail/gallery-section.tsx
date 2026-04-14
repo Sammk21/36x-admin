@@ -22,35 +22,8 @@ interface GalleryItem {
   id: number;
   src: string;
   alt: string;
-  aspect: AspectRatio;
+  aspect: AspectRatio | null;
 }
-
-const IMAGES: GalleryItem[] = [
-  {
-    id: 1,
-    src: "/images/img1.png",
-    alt: "Hood Monarchy back detail",
-    aspect: "tall",
-  },
-  {
-    id: 2,
-    src: "/images/img2.png",
-    alt: "Hood Monarchy editorial shot 1",
-    aspect: "wide",
-  },
-  {
-    id: 3,
-    src: "/images/img3.png",
-    alt: "Hood Monarchy editorial shot 2",
-    aspect: "wide",
-  },
-  {
-    id: 4,
-    src: "/images/img4.png",
-    alt: "Hood Monarchy editorial shot 3",
-    aspect: "square",
-  },
-];
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 
@@ -119,14 +92,19 @@ function DotPagination({
 const noiseDataUrl =
   "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E\")";
 
-const SLIDE_COUNT = 1 + IMAGES.length;
+interface GallerySectionProps {
+  images?: GalleryItem[];
+  videoUrl?: string | null;
+}
 
-function MobileCarousel() {
+function MobileCarousel({ images = [], videoUrl }: GallerySectionProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: "start",
   });
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const slideCount = (videoUrl ? 1 : 0) + images.length;
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -150,21 +128,23 @@ function MobileCarousel() {
     <div className="w-full">
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          <div className="flex-[0_0_100%] mr-3 relative overflow-hidden bg-[#111111] aspect-3/4">
-            <video
-              src="/videos/orbit.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div
-              className="pointer-events-none absolute inset-0 opacity-20"
-              style={{ backgroundImage: noiseDataUrl }}
-            />
-          </div>
-          {IMAGES.map((img, i) => (
+          {videoUrl && (
+            <div className="flex-[0_0_100%] mr-3 relative overflow-hidden bg-[#111111] aspect-3/4">
+              <video
+                src={videoUrl}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div
+                className="pointer-events-none absolute inset-0 opacity-20"
+                style={{ backgroundImage: noiseDataUrl }}
+              />
+            </div>
+          )}
+          {images.map((img, i) => (
             <div
               key={i}
               className="flex-[0_0_100%] mr-3 relative overflow-hidden aspect-3/4"
@@ -180,7 +160,7 @@ function MobileCarousel() {
       </div>
 
       <DotPagination
-        count={SLIDE_COUNT}
+        count={slideCount}
         active={activeIndex}
         onDotClick={scrollTo}
       />
@@ -188,68 +168,55 @@ function MobileCarousel() {
   );
 }
 
-function DesktopLayout() {
+function DesktopLayout({ images = [], videoUrl }: GallerySectionProps) {
   return (
-    <div className="flex flex-col lg:flex-row  lg:items-start">
-      <motion.div
-        variants={imgVariant}
-        className="
-                   w-full lg:w-[30%]
-                   h-screen lg:aspect-auto
-                   lg:sticky lg:top-4
-                   lg:self-start
-                   relative overflow-hidden bg-[#111111] 
-                   mb-3 lg:mb-0
-                   shrink
-                 "
-      >
-        <video
-          src="/videos/orbit.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+    <div className="flex flex-col lg:flex-row lg:items-start">
+      {videoUrl && (
+        <motion.div
+          variants={imgVariant}
+          className="
+                     w-full lg:w-[30%]
+                     h-screen lg:aspect-auto
+                     lg:sticky lg:top-4
+                     lg:self-start
+                     relative overflow-hidden bg-[#111111]
+                     mb-3 lg:mb-0
+                     shrink
+                   "
+        >
+          <video
+            src={videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E\")",
+            }}
+          />
+        </motion.div>
+      )}
 
-        <div
-          className="pointer-events-none absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E\")",
-          }}
-        />
-      </motion.div>
-
-      <div className="flex-1 flex flex-col ">
-        <GalleryImage
-          src={IMAGES[0].src}
-          alt={IMAGES[0].alt}
-          className="w-full aspect-3/4"
-        />
-
-        <GalleryImage
-          src={IMAGES[1].src}
-          alt={IMAGES[1].alt}
-          className="w-full aspect-3/4"
-        />
-        <GalleryImage
-          src={IMAGES[2].src}
-          alt={IMAGES[2].alt}
-          className="w-full aspect-3/4"
-        />
-
-        <GalleryImage
-          src={IMAGES[3].src}
-          alt={IMAGES[3].alt}
-          className="w-full aspect-3/4"
-        />
+      <div className="flex-1 flex flex-col">
+        {images.map((img) => (
+          <GalleryImage
+            key={img.id}
+            src={img.src}
+            alt={img.alt}
+            className="w-full aspect-3/4"
+          />
+        ))}
       </div>
     </div>
   );
 }
 
-export default function GallerySection() {
+export default function GallerySection({ images = [], videoUrl }: GallerySectionProps) {
   return (
     <motion.section
       className="w-full lg:w-[60%]"
@@ -258,10 +225,10 @@ export default function GallerySection() {
       animate="visible"
     >
       <div className="lg:hidden">
-        <MobileCarousel />
+        <MobileCarousel images={images} videoUrl={videoUrl} />
       </div>
       <div className="hidden lg:block">
-        <DesktopLayout />
+        <DesktopLayout images={images} videoUrl={videoUrl} />
       </div>
     </motion.section>
   );

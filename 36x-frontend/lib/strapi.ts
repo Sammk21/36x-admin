@@ -86,13 +86,12 @@ const PRODUCT_QUERY = {
     thumbnail: true,
     gallery_video: true,
     gallery_images: { populate: { image: true } },
-    concept_slides: { populate: { image: true } },
     review_sentiment_bars: true,
-    pairings: {
+    productDuo: {
       populate: {
-        item_a_image: true,
-        item_b_image: true,
-        result_image: true,
+        productOne: { populate: { thumbnail: true } },
+        productTwo: { populate: { thumbnail: true } },
+        Result: true,
       },
     },
     artist_collaborations: { populate: { cover_image: true } },
@@ -123,11 +122,10 @@ const COLLECTION_QUERY = {
 const ARTIST_QUERY = {
   populate: {
     cover_image: true,
+    bannerImages: true,
+    socialLinks: true,
     products: {
-      populate: {
-        thumbnail: true,
-        images: true,
-      },
+      populate: { thumbnail: true },
     },
   },
 }

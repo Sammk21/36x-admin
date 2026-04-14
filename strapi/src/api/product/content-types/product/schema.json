@@ -35,17 +35,38 @@
       "type": "media",
       "multiple": true,
       "required": false,
-      "allowedTypes": [
-        "images"
-      ]
+      "allowedTypes": ["images"]
     },
     "thumbnail": {
       "type": "media",
       "multiple": false,
       "required": false,
-      "allowedTypes": [
-        "images"
-      ]
+      "allowedTypes": ["images"]
+    },
+    "gallery_video": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["videos"]
+    },
+    "gallery_images": {
+      "type": "component",
+      "component": "product.gallery-image",
+      "repeatable": true
+    },
+    "review_headline": {
+      "type": "string"
+    },
+    "review_summary": {
+      "type": "text"
+    },
+    "review_dominant_icon": {
+      "type": "string"
+    },
+    "review_sentiment_bars": {
+      "type": "component",
+      "component": "product.sentiment-bar",
+      "repeatable": true
     },
     "variants": {
       "type": "relation",
@@ -68,6 +89,12 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::product-collection.product-collection",
+      "inversedBy": "products"
+    },
+    "artist_collaborations": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::artist-collaboration.artist-collaboration",
       "inversedBy": "products"
     },
     "Artist": {

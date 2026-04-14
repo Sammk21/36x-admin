@@ -16,12 +16,21 @@ import type { MedusaProductVariant, MedusaProductOption } from "@/lib/types/medu
 
 type Size = "XS" | "S" | "M" | "L" | "XL" | "XXL";
 
+type GalleryItem = {
+  id: number;
+  src: string;
+  alt: string;
+  aspect: "tall" | "wide" | "square" | null;
+}
+
 export type ProductDetailProps = {
   title?: string
   description?: string | null
   variants?: MedusaProductVariant[]
   options?: MedusaProductOption[]
   currencyCode?: string
+  galleryImages?: GalleryItem[]
+  galleryVideoUrl?: string | null
 }
 
 const containerVariants = {
@@ -130,6 +139,8 @@ export default function ProductDetail({
   variants = [],
   options = [],
   currencyCode = "inr",
+  galleryImages = [],
+  galleryVideoUrl,
 }: ProductDetailProps) {
   const { addItem, isLoading: cartLoading } = useCart();
   const router = useRouter();
@@ -176,7 +187,7 @@ export default function ProductDetail({
     <main className="min-h-screen bg-[#111111] text-white">
       <div className="flex flex-col lg:flex-row min-h-screen">
 
-        <GallerySection />
+        <GallerySection images={galleryImages} videoUrl={galleryVideoUrl} />
 
         <motion.section
           className="w-full lg:w-[40%] lg:sticky lg:top-0 lg:max-h-screen flex flex-col justify-between px-3 sm:px-5 py-10 lg:px-10 lg:py-0 border-l border-zinc-800/50"

@@ -5,19 +5,30 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 gsap.registerPlugin(CustomEase);
 
 CustomEase.create("elastic-css", ".2, 1.33, .25, 1");
 CustomEase.create("ease-in-css", ".25, 1, 0.1, 1");
 
-const LINES = [
-  ["BORN", "ON", "BRICK,"],
-  ["BUILT", "FOR", "MOTION"],
-];
+interface HeroButton {
+  id: number;
+  text: string;
+  varient: string | null;
+  href: string;
+}
 
-const HomeHero = () => {
+interface HomeHeroProps {
+  title?: string | null;
+  subtitle?: string | null;
+  buttons?: HeroButton[];
+}
+
+const HomeHero = ({ title, subtitle, buttons = [] }: HomeHeroProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const titleWords = title ? title.split(" ") : [];
 
   useGSAP(
     () => {
@@ -34,7 +45,6 @@ const HomeHero = () => {
         clearProps: "all",
       });
 
-  
       tl.fromTo(
         ".animate-slide-in",
         { yPercent: 101 },
@@ -63,14 +73,14 @@ const HomeHero = () => {
         },
         "<",
       );
-       tl.to(
+      tl.to(
         ".hero-lights-on",
         {
           opacity: 1,
           duration: 0.8,
           ease: "power2.inOut",
         },
-        "-=0.1" 
+        "-=0.1"
       );
     },
     { scope: containerRef },
@@ -83,23 +93,19 @@ const HomeHero = () => {
     >
       <div className="text-center px-4 flex items-center justify-center flex-col">
         <div>
-          <h1
-            className="text-7xl sm:text-[13vw] lg:text-[9vw] font-display tracking-normal leading-[104%]"
-            aria-label="BORN ON BRICK, BUILT FOR MOTION"
-          >
-            {LINES.map((words, lineIdx) => (
-              <span key={lineIdx} className="block" aria-hidden="true">
-                {words.map((word, wordIdx) => (
-                  /*
-                   * Outer span: overflow-hidden clips the word as it rises.
-                   * Inner span (.single-word-inner): the GSAP target.
-                   */
+          {titleWords.length > 0 && (
+            <h1
+              className="text-7xl sm:text-[13vw] lg:text-[9vw] font-display tracking-normal leading-[104%]"
+              aria-label={title ?? ""}
+            >
+              <span className="block" aria-hidden="true">
+                {titleWords.map((word, wordIdx) => (
                   <span
                     key={wordIdx}
                     className="split-words animate-transition inline-block overflow-hidden align-bottom"
                     style={{
                       marginRight:
-                        wordIdx < words.length - 1 ? "0.25em" : undefined,
+                        wordIdx < titleWords.length - 1 ? "0.25em" : undefined,
                     }}
                   >
                     <span className="single-word-inner inline-block will-change-transform">
@@ -108,32 +114,44 @@ const HomeHero = () => {
                   </span>
                 ))}
               </span>
-            ))}
-          </h1>
+            </h1>
+          )}
 
-          {/* overflow-hidden on wrapper clips the subtitle slide */}
-          <div className="overflow-hidden mt-2">
-            <p className="animate-slide-in text-xl md:text-3xl font-body will-change-transform">
-              Streetwear from the underground up.
-            </p>
+          {subtitle && (
+            <div className="overflow-hidden mt-2">
+              <p className="animate-slide-in text-xl md:text-3xl font-body will-change-transform">
+                {subtitle}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {buttons.length > 0 && (
+          <div className="flex gap-2 mt-6">
+            {buttons.map((btn) =>
+              btn.href ? (
+                <Link key={btn.id} href={btn.href}>
+                  <Button
+                    size="responsive"
+                    variant={(btn.varient as any) ?? "default"}
+                    className="animate-fade-in rounded-lg will-change-transform"
+                  >
+                    {btn.text}
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  key={btn.id}
+                  size="responsive"
+                  variant={(btn.varient as any) ?? "default"}
+                  className="animate-fade-in rounded-lg will-change-transform"
+                >
+                  {btn.text}
+                </Button>
+              )
+            )}
           </div>
-        </div>
-
-        <div className="flex gap-2 mt-6">
-          <Button
-            size="responsive"
-            className="animate-fade-in rounded-lg will-change-transform"
-          >
-            Community CTA
-          </Button>
-          <Button
-            size="responsive"
-            variant="outline"
-            className="animate-fade-in rounded-lg will-change-transform"
-          >
-            Collections CTA
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -45,7 +45,7 @@
     "feedSection": {
       "type": "component",
       "component": "home.feed-section",
-      "repeatable": true
+      "repeatable": false
     }
   }
 }

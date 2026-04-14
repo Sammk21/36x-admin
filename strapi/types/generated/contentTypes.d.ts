@@ -448,17 +448,22 @@ export interface ApiArtistCollaborationArtistCollaboration
       true
     >;
     bio: Schema.Attribute.RichText;
+    cover_image: Schema.Attribute.Media<'images'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     handle: Schema.Attribute.UID;
+    homepage_order: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::artist-collaboration.artist-collaboration'
     > &
       Schema.Attribute.Private;
+    products: Schema.Attribute.Relation<'manyToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
+    show_on_homepage: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     socialLinks: Schema.Attribute.Component<'shared.social-links', false>;
     subtitle: Schema.Attribute.String;
     title: Schema.Attribute.String & Schema.Attribute.Required;
@@ -621,7 +626,7 @@ export interface ApiHomePageHomePage extends Struct.SingleTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    feedSection: Schema.Attribute.Component<'home.feed-section', true>;
+    feedSection: Schema.Attribute.Component<'home.feed-section', false>;
     HomeHero: Schema.Attribute.Component<'shared.hero', false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -847,10 +852,16 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   };
   attributes: {
     Artist: Schema.Attribute.Component<'product.artist', false>;
+    artist_collaborations: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::artist-collaboration.artist-collaboration'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.RichText;
+    gallery_images: Schema.Attribute.Component<'product.gallery-image', true>;
+    gallery_video: Schema.Attribute.Media<'videos'>;
     handle: Schema.Attribute.UID<'title'>;
     images: Schema.Attribute.Media<'images', true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -876,6 +887,13 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'product.related-product',
       false
     >;
+    review_dominant_icon: Schema.Attribute.String;
+    review_headline: Schema.Attribute.String;
+    review_sentiment_bars: Schema.Attribute.Component<
+      'product.sentiment-bar',
+      true
+    >;
+    review_summary: Schema.Attribute.Text;
     specs: Schema.Attribute.Component<'product.product-spec', true>;
     subtitle: Schema.Attribute.String;
     thumbnail: Schema.Attribute.Media<'images'>;

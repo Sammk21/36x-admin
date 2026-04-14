@@ -9,7 +9,7 @@ import {
   PanInfo,
 } from "framer-motion";
 
-interface CardData {
+export interface CardData {
   id: number;
   image: string;
   label: string;
@@ -33,50 +33,6 @@ const STACK_SCALE = 0.09;
 const DRAG_THRESHOLD = 100;
 const SCALE = 0.8;
 
-const cards: CardData[] = [
-  {
-    id: 1,
-    image:
-      "/images/product.png",
-    label: "COLLECTION 01",
-    sub: "Off-White™ × Chicago Bulls",
-  },
-  {
-    id: 2,
-    image:
-      "/images/product.png",
-    label: "COLLECTION 02",
-    sub: "Leather Varsity Jacket",
-  },
-  {
-    id: 3,
-    image:
-      "/images/product.png",
-    label: "COLLECTION 03",
-    sub: "Abloh Streetwear Edit",
-  },
-  {
-    id: 4,
-    image:
-      "/images/product.png",
-    label: "COLLECTION 04",
-    sub: "Basketball Court Capsule",
-  },
-  {
-    id: 5,
-    image:
-      "/images/product.png",
-    label: "COLLECTION 05",
-    sub: "Utility Denim Series",
-  },
-  {
-    id: 6,
-    image:
-      "/images/product.png",
-    label: "COLLECTION 06",
-    sub: "Archive Hoodie Reissue",
-  },
-];
 
 function Card({
   card,
@@ -221,7 +177,7 @@ function Card({
   );
 }
 
-export default function StackedSlider() {
+export default function StackedSlider({ cards = [] }: { cards?: CardData[] }) {
   const [deck, setDeck] = useState<CardData[]>(cards);
 
   const handleDismiss = () => {

@@ -6,5 +6,33 @@
     "description": "A Goes Well With pairing row: item A + item B = result look"
   },
   "options": {},
-  "attributes": {}
+  "attributes": {
+    "item_a_image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "item_a_alt": {
+      "type": "string"
+    },
+    "item_b_image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "item_b_alt": {
+      "type": "string"
+    },
+    "result_image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images"]
+    },
+    "result_alt": {
+      "type": "string"
+    }
+  }
 }

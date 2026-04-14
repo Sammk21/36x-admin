@@ -82,14 +82,6 @@ export type GalleryImage = {
   aspect: "tall" | "wide" | "square" | null
 }
 
-export type ConceptSlide = {
-  id: number
-  title: string
-  subtitle: string | null
-  description: string | null
-  image: StrapiMedia
-}
-
 export type SentimentBar = {
   id: number
   value: number
@@ -98,14 +90,11 @@ export type SentimentBar = {
   color: string | null
 }
 
-export type ProductPairing = {
+export type StrapiProductMatcher = {
   id: number
-  item_a_image: StrapiMedia
-  item_a_alt: string | null
-  item_b_image: StrapiMedia
-  item_b_alt: string | null
-  result_image: StrapiMedia
-  result_alt: string | null
+  productOne: Pick<StrapiProduct, "id" | "documentId" | "title" | "handle" | "thumbnail"> | null
+  productTwo: Pick<StrapiProduct, "id" | "documentId" | "title" | "handle" | "thumbnail"> | null
+  Result: StrapiMedia | null
 }
 
 // ---------------------------------------------------------------------------
@@ -173,6 +162,15 @@ export type StrapiProductVariant = {
   option_values: StrapiProductOptionValue[]
 }
 
+export type StrapiSocialLinks = {
+  id: number
+  instagram: string | null
+  facebook: string | null
+  youtube: string | null
+  twitter: string | null
+  Whatsapp: number | null
+}
+
 export type StrapiArtistCollaboration = {
   id: number
   documentId: string
@@ -180,9 +178,12 @@ export type StrapiArtistCollaboration = {
   handle: string
   subtitle: string | null
   bio: string | null
-  cover_image: StrapiMedia
+  cover_image: StrapiMedia | null
   show_on_homepage: boolean
   homepage_order: number | null
+  socialLinks: StrapiSocialLinks | null
+  bannerImages: StrapiMedia[]
+  products: Pick<StrapiProduct, "id" | "documentId" | "title" | "handle" | "thumbnail">[]
 }
 
 export type StrapiProduct = {
@@ -199,8 +200,7 @@ export type StrapiProduct = {
   gallery_video: StrapiMedia | null
   // Components
   gallery_images: GalleryImage[]
-  concept_slides: ConceptSlide[]
-  pairings: ProductPairing[]
+  productDuo: StrapiProductMatcher[]
   // Review
   review_headline: string | null
   review_summary: string | null

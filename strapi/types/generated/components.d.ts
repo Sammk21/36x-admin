@@ -103,12 +103,8 @@ export interface HomeFeedSection extends Struct.ComponentSchema {
     displayName: 'FeedSection';
   };
   attributes: {
-    button: Schema.Attribute.Component<'shared.button', false>;
-    description: Schema.Attribute.String;
-    media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
-    postLink: Schema.Attribute.Text;
+    posts: Schema.Attribute.Component<'home.posts', true>;
     sectionIntro: Schema.Attribute.Component<'shared.section-intro', false>;
-    title: Schema.Attribute.String;
   };
 }
 
@@ -125,6 +121,20 @@ export interface HomePageShell extends Struct.ComponentSchema {
     topImageOverlay: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios'
     >;
+  };
+}
+
+export interface HomePosts extends Struct.ComponentSchema {
+  collectionName: 'components_home_posts';
+  info: {
+    displayName: 'Posts';
+  };
+  attributes: {
+    button: Schema.Attribute.Component<'shared.button', true>;
+    description: Schema.Attribute.String;
+    media: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    postLink: Schema.Attribute.String;
+    title: Schema.Attribute.String;
   };
 }
 
@@ -149,7 +159,12 @@ export interface ProductConceptSlide extends Struct.ComponentSchema {
     displayName: 'Concept Slide';
     icon: 'image';
   };
-  attributes: {};
+  attributes: {
+    description: Schema.Attribute.Text;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    subtitle: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+  };
 }
 
 export interface ProductGalleryImage extends Struct.ComponentSchema {
@@ -159,7 +174,11 @@ export interface ProductGalleryImage extends Struct.ComponentSchema {
     displayName: 'Gallery Image';
     icon: 'landscape';
   };
-  attributes: {};
+  attributes: {
+    alt: Schema.Attribute.String;
+    aspect: Schema.Attribute.Enumeration<['tall', 'wide', 'square']>;
+    image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+  };
 }
 
 export interface ProductMatchers extends Struct.ComponentSchema {
@@ -181,7 +200,14 @@ export interface ProductProductPairing extends Struct.ComponentSchema {
     displayName: 'Product Pairing';
     icon: 'plus';
   };
-  attributes: {};
+  attributes: {
+    item_a_alt: Schema.Attribute.String;
+    item_a_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    item_b_alt: Schema.Attribute.String;
+    item_b_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    result_alt: Schema.Attribute.String;
+    result_image: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+  };
 }
 
 export interface ProductProductSpec extends Struct.ComponentSchema {
@@ -214,7 +240,20 @@ export interface ProductSentimentBar extends Struct.ComponentSchema {
     displayName: 'Sentiment Bar';
     icon: 'emotionHappy';
   };
-  attributes: {};
+  attributes: {
+    color: Schema.Attribute.String;
+    icon: Schema.Attribute.String;
+    label: Schema.Attribute.String & Schema.Attribute.Required;
+    value: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+  };
 }
 
 export interface SharedButton extends Struct.ComponentSchema {
@@ -387,6 +426,7 @@ declare module '@strapi/strapi' {
       'home.collection-section': HomeCollectionSection;
       'home.feed-section': HomeFeedSection;
       'home.page-shell': HomePageShell;
+      'home.posts': HomePosts;
       'product.artist': ProductArtist;
       'product.concept-slide': ProductConceptSlide;
       'product.gallery-image': ProductGalleryImage;
