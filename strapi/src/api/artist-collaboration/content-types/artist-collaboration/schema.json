@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "artist_collaborations",
+  "info": {
+    "singularName": "artist-collaboration",
+    "pluralName": "artist-collaborations",
+    "displayName": "Artist Collaboration",
+    "description": "Artists and collectives who have collaborated on products"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "handle": {
+      "type": "uid"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "richtext"
+    },
+    "coverImage": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "products": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::product.product",
+      "inversedBy": "artist_collaborations"
+    }
+  }
+}

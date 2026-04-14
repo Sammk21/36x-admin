@@ -430,6 +430,211 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiArtistCollaborationArtistCollaboration
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'artist_collaborations';
+  info: {
+    description: 'Artists and collectives who have collaborated on products';
+    displayName: 'Artist Collaboration';
+    pluralName: 'artist-collaborations';
+    singularName: 'artist-collaboration';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    bio: Schema.Attribute.RichText;
+    coverImage: Schema.Attribute.Media<'images'> & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    handle: Schema.Attribute.UID;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::artist-collaboration.artist-collaboration'
+    > &
+      Schema.Attribute.Private;
+    products: Schema.Attribute.Relation<'manyToMany', 'api::product.product'>;
+    publishedAt: Schema.Attribute.DateTime;
+    subtitle: Schema.Attribute.String;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiCategoriesListingPageCategoriesListingPage
+  extends Struct.SingleTypeSchema {
+  collectionName: 'categories_listing_page';
+  info: {
+    description: 'Editable content for the /categories listing page';
+    displayName: 'Categories Listing Page';
+    pluralName: 'categories-listing-pages';
+    singularName: 'categories-listing-page';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    hero: Schema.Attribute.Component<'shared.hero', true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::categories-listing-page.categories-listing-page'
+    > &
+      Schema.Attribute.Private;
+    product_category: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::product-category.product-category'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiCollectionTimelinePageCollectionTimelinePage
+  extends Struct.SingleTypeSchema {
+  collectionName: 'collection_timeline_page';
+  info: {
+    description: 'Page-level settings for /collection-timeline \u2014 the actual chapter data lives on each Product Collection entry';
+    displayName: 'Collection Timeline Page';
+    pluralName: 'collection-timeline-pages';
+    singularName: 'collection-timeline-page';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    collectionTimeline: Schema.Attribute.Component<
+      'collection.collection-timeline',
+      true
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::collection-timeline-page.collection-timeline-page'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    sectionIntro: Schema.Attribute.Component<'shared.section-intro', true>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiCollectionsListingPageCollectionsListingPage
+  extends Struct.SingleTypeSchema {
+  collectionName: 'collections_listing_page';
+  info: {
+    description: 'Editable content for the /collections listing page';
+    displayName: 'Collections Listing Page';
+    pluralName: 'collections-listing-pages';
+    singularName: 'collections-listing-page';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    collection: Schema.Attribute.Component<'category.category-masonry', false>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    Hero: Schema.Attribute.Component<'shared.listing-hero', false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::collections-listing-page.collections-listing-page'
+    > &
+      Schema.Attribute.Private;
+    pageShell: Schema.Attribute.Component<'category.page-shell', false>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiGlobalNavigationGlobalNavigation
+  extends Struct.SingleTypeSchema {
+  collectionName: 'global_navigation';
+  info: {
+    description: 'Site-wide navbar structure: links, labels, dropdowns';
+    displayName: 'Global Navigation';
+    pluralName: 'global-navigations';
+    singularName: 'global-navigation';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    cart_label: Schema.Attribute.String & Schema.Attribute.DefaultTo<'CART'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::global-navigation.global-navigation'
+    > &
+      Schema.Attribute.Private;
+    logo: Schema.Attribute.Media<'images' | 'files'>;
+    logo_alt: Schema.Attribute.String & Schema.Attribute.DefaultTo<'36X'>;
+    nav_items: Schema.Attribute.Component<'shared.nav-item', true>;
+    publishedAt: Schema.Attribute.DateTime;
+    signin_label: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'Sign In'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiHomePageHomePage extends Struct.SingleTypeSchema {
+  collectionName: 'home_page';
+  info: {
+    description: 'All editable content for the homepage';
+    displayName: 'Home Page';
+    pluralName: 'home-pages';
+    singularName: 'home-page';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    artistCollab: Schema.Attribute.Component<'home.artist-collab', false>;
+    category: Schema.Attribute.Component<'home.category-section', false>;
+    collection: Schema.Attribute.Component<'home.collection-section', false>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    feedSection: Schema.Attribute.Component<'home.feed-section', true>;
+    HomeHero: Schema.Attribute.Component<'shared.hero', false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::home-page.home-page'
+    > &
+      Schema.Attribute.Private;
+    masonry_products: Schema.Attribute.Component<'shared.masonry-image', false>;
+    PageShell: Schema.Attribute.Component<'home.page-shell', false>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiProductCategoryProductCategory
   extends Struct.CollectionTypeSchema {
   collectionName: 'product_categories';
