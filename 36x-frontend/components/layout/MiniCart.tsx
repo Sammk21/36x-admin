@@ -6,15 +6,16 @@ import Link from "next/link"
 import { X, Minus, Plus, ShoppingBag } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { useCart } from "@/lib/store/cart"
-import { formatPrice } from "@/lib/cart"
-import type { MedusaLineItem } from "@/lib/types/medusa"
+import { formatPrice } from "@/lib/medusa/cart"
+import type { HttpTypes } from "@medusajs/types"
+type MedusaLineItem = HttpTypes.StoreCartLineItem
 
 // ---------------------------------------------------------------------------
 // Line item row
 // ---------------------------------------------------------------------------
 
 function LineItem({ item }: { item: MedusaLineItem }) {
-  const { updateItem, removeItem, isLoading } = useCart()
+  const { cart, updateItem, removeItem, isLoading } = useCart()
 
   return (
     <div className="flex gap-3 py-4 border-b border-white/10 last:border-0">
@@ -73,7 +74,7 @@ function LineItem({ item }: { item: MedusaLineItem }) {
 
           {/* Price */}
           <p className="text-white text-xs font-body">
-            {formatPrice(item.total, item.variant?.prices?.[0]?.currency_code)}
+            {formatPrice(item.total ?? 0, cart?.currency_code)}
           </p>
         </div>
       </div>
@@ -130,18 +131,14 @@ export default function MiniCart({ open, onClose }: MiniCartProps) {
             exit={{ opacity: 0, y: -6, scaleY: 0.97 }}
             transition={{ duration: 0.22, ease: [0.42, 0, 0.58, 1] }}
             style={{ transformOrigin: "top right" }}
-            className="fixed top-[72px] right-4 z-50 w-[340px] max-h-[calc(100vh-96px)] flex flex-col rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+            className="fixed top-[72px] right-4 z-50 w-[340px] max-h-[calc(100vh-96px)] flex flex-col rounded-2xl overflow-hidden border bg-black border-white/10 shadow-2xl"
             // stop clicks inside from closing via backdrop
             onClick={(e) => e.stopPropagation()}
           >
             {/* Glass background */}
             <div
               className="absolute inset-0 -z-10"
-              style={{
-                background:
-                  "linear-gradient(160deg, #2a3338 0%, #1c2529 40%, #141c1f 100%)",
-                backdropFilter: "blur(24px)",
-              }}
+            
             />
 
             {/* Header */}

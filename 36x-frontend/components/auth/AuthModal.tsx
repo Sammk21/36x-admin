@@ -95,19 +95,19 @@ function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       />
 
       {error && (
-        <p className="text-red-400 text-xs font-body text-center">{error}</p>
+        <p className="text-red-400 text-sm font-body text-center">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={isLoading || !email || !password}
-        className="mt-1 w-full py-3 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+        className="mt-1 w-full py-3 rounded-xl bg-white text-black text-sm font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
       >
         {isLoading && <Loader2 size={13} className="animate-spin" />}
         Sign In
       </button>
 
-      <p className="text-center text-white/30 text-xs font-body">
+      <p className="text-center text-white/30 text-sm font-body">
         No account?{" "}
         <button
           type="button"
@@ -193,19 +193,19 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       />
 
       {error && (
-        <p className="text-red-400 text-xs font-body text-center">{error}</p>
+        <p className="text-red-400 text-sm font-body text-center">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={isLoading || !valid}
-        className="mt-1 w-full py-3 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+        className="mt-1 w-full py-3 rounded-xl bg-white text-black text-sm font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
       >
         {isLoading && <Loader2 size={13} className="animate-spin" />}
         Create Account
       </button>
 
-      <p className="text-center text-white/30 text-xs font-body">
+      <p className="text-center text-white/30 text-sm font-body">
         Already have an account?{" "}
         <button
           type="button"
@@ -264,14 +264,11 @@ export default function AuthModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 16 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black p-4 pointer-events-none"
           >
             <div
               className="relative w-full max-w-md rounded-2xl border border-white/10 shadow-2xl pointer-events-auto overflow-hidden"
-              style={{
-                background:
-                  "linear-gradient(160deg, #2a3338 0%, #1c2529 40%, #141c1f 100%)",
-              }}
+            
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close */}
@@ -285,10 +282,10 @@ export default function AuthModal({
               <div className="px-8 py-8">
                 {/* Logo / heading */}
                 <div className="mb-6 text-center">
-                  <p className="text-2xl font-display uppercase tracking-widest text-white">
+                  <p className="text-3xl font-display uppercase  text-white">
                     {tab === "login" ? "Welcome Back" : "Join 36X"}
                   </p>
-                  <p className="text-white/30 text-xs font-body mt-1">
+                  <p className="text-white/30 text-sm font-body mt-1">
                     {tab === "login"
                       ? "Sign in to your account"
                       : "Create your account"}
@@ -301,7 +298,7 @@ export default function AuthModal({
                     <button
                       key={t}
                       onClick={() => setTab(t)}
-                      className={`flex-1 py-2.5 text-xs font-display uppercase tracking-widest transition ${
+                      className={`flex-1 py-2.5 text-md font-display uppercase  transition ${
                         tab === t
                           ? "bg-white/10 text-white"
                           : "text-white/30 hover:text-white/60"

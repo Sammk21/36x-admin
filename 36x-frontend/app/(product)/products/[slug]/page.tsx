@@ -77,9 +77,12 @@ console.log(artists)
       <ProductDetail
         title={strapiProduct.title}
         description={strapiProduct.description}
-        variants={medusaProduct?.variants}
-        options={medusaProduct?.options}
-        currencyCode={medusaProduct?.variants?.[0]?.prices?.[0]?.currency_code ?? "inr"}
+        variants={medusaProduct?.variants ?? undefined}
+        options={medusaProduct?.options ?? undefined}
+        currencyCode={
+          (medusaProduct?.variants?.[0]?.calculated_price as { currency_code?: string } | undefined)
+            ?.currency_code ?? "inr"
+        }
         galleryImages={galleryImages}
         galleryVideoUrl={strapiImage(strapiProduct.gallery_video) ?? null}
       />

@@ -11,8 +11,10 @@ import ConceptSection from "./conceptSection";
 import ReviewsSentiment from "./reviewSentiment";
 import GallerySection from "./gallery-section";
 import { useCart } from "@/lib/store/cart";
-import { formatPrice } from "@/lib/cart";
-import type { MedusaProductVariant, MedusaProductOption } from "@/lib/types/medusa";
+import { formatPrice } from "@/lib/medusa/cart";
+import type { HttpTypes } from "@medusajs/types";
+type MedusaProductVariant = HttpTypes.StoreProductVariant & { prices?: { amount: number; currency_code: string }[] }
+type MedusaProductOption = HttpTypes.StoreProductOption
 
 type Size = "XS" | "S" | "M" | "L" | "XL" | "XXL";
 
@@ -152,8 +154,8 @@ export default function ProductDetail({
 
   // Find the variant that matches all currently selected option values
   const selectedVariant = variants.find((v) =>
-    v.options.every(
-      (opt) => selectedOptions[opt.option_id] === opt.id
+    (v.options ?? []).every(
+      (opt) => opt.option_id != null && selectedOptions[opt.option_id] === opt.id
     )
   ) ?? null;
 
@@ -162,8 +164,15 @@ export default function ProductDetail({
 
   // Price: use first price of selected variant, or cheapest variant
   const displayVariant = selectedVariant ?? variants[0] ?? null;
-  const price = displayVariant?.prices?.[0]
-    ? formatPrice(displayVariant.prices[0].amount, displayVariant.prices[0].currency_code ?? currencyCode)
+  // Use prices[] from the API response (requested via +variants.prices in fields)
+  // Fall back to calculated_price.calculated_amount if prices[] is absent
+  const variantAmount =
+    displayVariant?.prices?.[0]?.amount ??
+    (displayVariant?.calculated_price?.calculated_amount ?? null)
+  const variantCurrency =
+    displayVariant?.prices?.[0]?.currency_code ?? currencyCode
+  const price = variantAmount !== null
+    ? formatPrice(variantAmount, variantCurrency)
     : null;
 
   // Fallback to size display if no options from Medusa (dev/preview mode)
@@ -228,7 +237,7 @@ export default function ProductDetail({
                       {option.title}
                     </p>
                     <div className="flex flex-row gap-1">
-                      {option.values.map((val, index) => {
+                      {(option.values ?? []).map((val, index) => {
                         const isSelected = selectedOptions[option.id] === val.id;
                         return (
                           <b
@@ -242,7 +251,7 @@ export default function ProductDetail({
                             style={{
                               zIndex: isSelected
                                 ? 30
-                                : option.values.length - index,
+                                : (option.values?.length ?? 0) - index,
                             }}
                             className={`
                               relative flex first:rounded-lg rounded-l-none last:rounded-r-[12px] h-11 w-15 items-center justify-center
