@@ -24,6 +24,7 @@ import {
 
 const CART_ID_KEY = "36x_cart_id"
 const REGION_ID_KEY = "36x_region_id"
+const COUNTRY_CODE_KEY = "36x_country_code"
 
 // ---------------------------------------------------------------------------
 // Context shape
@@ -33,6 +34,7 @@ type CartState = {
   cart: HttpTypes.StoreCart | null
   region: HttpTypes.StoreRegion | null
   regions: HttpTypes.StoreRegion[]
+  country: HttpTypes.StoreRegionCountry | null
   isOpen: boolean
   isLoading: boolean
   itemCount: number
@@ -44,6 +46,8 @@ type CartState = {
   removeItem: (lineItemId: string) => Promise<void>
   /** Switch the active region — updates cart region if a cart exists */
   switchRegion: (regionId: string) => Promise<void>
+  /** Switch the active country within the current region */
+  switchCountry: (iso2: string) => Promise<void>
   /** Directly replace cart state — use after mutations that return an updated cart */
   setCart: React.Dispatch<React.SetStateAction<HttpTypes.StoreCart | null>>
   /** Clear cart state + localStorage — call after order is placed or customer logs out */
@@ -64,6 +68,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<HttpTypes.StoreCart | null>(null)
   const [region, setRegion] = useState<HttpTypes.StoreRegion | null>(null)
   const [regions, setRegions] = useState<HttpTypes.StoreRegion[]>([])
+  const [country, setCountry] = useState<HttpTypes.StoreRegionCountry | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -86,6 +91,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(REGION_ID_KEY, activeRegion.id)
           setRegions(regions)
           setRegion(activeRegion)
+
+          // Restore selected country within the region
+          const storedCountryCode = localStorage.getItem(COUNTRY_CODE_KEY)
+          const allCountries = activeRegion.countries ?? []
+          const activeCountry =
+            allCountries.find((c) => c.iso_2 === storedCountryCode) ??
+            allCountries[0] ??
+            null
+          if (activeCountry) {
+            localStorage.setItem(COUNTRY_CODE_KEY, activeCountry.iso_2!)
+            setCountry(activeCountry)
+          }
         }
       } catch {
         // proceed without region — cart creation will use backend default
@@ -183,6 +200,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [regions, cart])
 
   /**
+   * Switch the selected country within the current region.
+   * Persists to localStorage and updates the cart's country_code if a cart exists.
+   */
+  const switchCountry = useCallback(async (iso2: string) => {
+    if (!region) return
+    const next = (region.countries ?? []).find((c) => c.iso_2 === iso2)
+    if (!next) return
+    localStorage.setItem(COUNTRY_CODE_KEY, iso2)
+    setCountry(next)
+    if (cart) {
+      try {
+        const updated = await updateCart(cart.id, { country_code: iso2 })
+        setCart(updated)
+      } catch {
+        // cart update failed — country UI still reflects selection
+      }
+    }
+  }, [region, cart])
+
+  /**
    * Wipe cart from state + localStorage.
    * Call this after a successful order, or when the customer logs out.
    */
@@ -202,6 +239,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         cart,
         region,
         regions,
+        country,
         isOpen,
         isLoading,
         itemCount,
@@ -212,6 +250,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updateItem,
         removeItem,
         switchRegion,
+        switchCountry,
         setCart,
         refreshCart,
       }}
