@@ -55,6 +55,9 @@
       "relation": "manyToMany",
       "target": "api::product-option-value.product-option-value",
       "inversedBy": "variants"
+    },
+    "prices": {
+      "type": "json"
     }
   }
 }

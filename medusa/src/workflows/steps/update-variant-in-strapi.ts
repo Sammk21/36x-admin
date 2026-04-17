@@ -8,6 +8,13 @@ export type UpdateVariantInStrapiInput = {
     title?: string
     sku?: string
     optionValueIds?: number[]
+    prices?: {
+      id: string
+      amount: number
+      currency_code: string
+      min_quantity?: number | null
+      max_quantity?: number | null
+    }[]
   }
 }
 
@@ -27,6 +34,7 @@ export const updateVariantInStrapiStep = createStep(
       title: variant.title,
       sku: variant.sku,
       ...(variant.optionValueIds && { optionValueIds: variant.optionValueIds }),
+      ...(variant.prices && { prices: variant.prices }),
     })
 
     return new StepResponse(

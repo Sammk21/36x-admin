@@ -39,28 +39,6 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: "Collections",
     href: "/collection-timeline",
-    dropdown: {
-      sections: [
-        {
-          title: "COLLECTIONS",
-          items: [
-            { label: "SS25 Drop", href: "#" },
-            { label: "FW24 Archive", href: "#" },
-            { label: "Capsule Series", href: "#" },
-            { label: "Collabs", href: "#" },
-          ],
-        },
-        {
-          title: "CATEGORIES",
-          items: [
-            { label: "Tops", href: "#" },
-            { label: "Bottoms", href: "#" },
-            { label: "Outerwear", href: "#" },
-            { label: "Accessories", href: "#" },
-          ],
-        },
-      ],
-    },
   },
   { label: "Community", href: "#" },
   { label: "Core", href: "#" },
@@ -83,9 +61,10 @@ function NavDropdown({
   sections,
   onClose,
 }: {
-  sections: NavItem["dropdown"]["sections"];
+  sections: NavItem["dropdown"];
   onClose: () => void;
 }) {
+  if (!sections) return null;
   return (
     <motion.div
       initial={{ opacity: 0, y: -8, scaleY: 0.96 }}
@@ -105,7 +84,7 @@ function NavDropdown({
       >
         {/* Sections */}
         <div className="px-5 pt-5 pb-2">
-          {sections.map((section:any, si:any) => (
+          {sections.sections.map((section:any, si:any) => (
             <div key={section.title}>
               {/* Section title */}
               <p className="font-display text-white font-black tracking-widest text-base mb-3">
@@ -126,7 +105,7 @@ function NavDropdown({
                 ))}
               </ul>
               {/* Divider between sections */}
-              {si < sections.length - 1 && (
+              {si < sections.sections.length - 1 && (
                 <div className="my-3 border-t border-white/15" />
               )}
             </div>
@@ -191,7 +170,7 @@ function DesktopNavLink({ item, active }: { item: NavItem; active: boolean }) {
         <AnimatePresence>
           {open && (
             <NavDropdown
-              sections={item.dropdown!.sections}
+              sections={item.dropdown!}
               onClose={() => setOpen(false)}
             />
           )}

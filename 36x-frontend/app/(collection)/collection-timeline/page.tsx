@@ -12,21 +12,18 @@ export default async function CollectionTimelinePage() {
         id: col.documentId,
         chapter: entry.chapterTitle ?? `CH #${entry.chapterNumber ?? i + 1}`,
         chapterSub: col.chapter_subtitle ?? col.title,
-        comicStripUrl: strapiImage(col.comic_strip_image) ?? undefined,
-        collection: col.cover_image
+        chapterBanner: strapiImage(entry.storyBanner?.[0]) ?? undefined,
+        collectionHandle: col.handle,
+        collection: col.banner
           ? {
               title: col.title,
               subtitle: col.artist_credit ?? "",
-              imageUrl: strapiImage(col.cover_image) ?? "",
+              collectionBanner: strapiImage(col.banner) ?? "",
               accentColor: col.accent_color ?? "#0f2e12",
             }
           : undefined,
       };
     });
 
-  return (
-    <div className="max-w-4xl mx-auto h-auto flex flex-col py-8">
-      <Timeline chapters={chapters} />
-    </div>
-  );
+  return <Timeline chapters={chapters} />;
 }

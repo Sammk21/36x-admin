@@ -182,6 +182,24 @@ export async function initPaymentSession(
   return res.payment_collection
 }
 
+/** Apply a promo code to the cart */
+export async function applyPromoCode(cartId: string, code: string): Promise<MedusaCart> {
+  const res = await cartRequest<MedusaCartResponse>(
+    `/store/carts/${cartId}`,
+    { method: "POST", body: JSON.stringify({ promo_codes: [code] }) }
+  )
+  return res.cart
+}
+
+/** Remove a promo code from the cart */
+export async function removePromoCode(cartId: string, code: string): Promise<MedusaCart> {
+  const res = await cartRequest<MedusaCartResponse>(
+    `/store/carts/${cartId}`,
+    { method: "POST", body: JSON.stringify({ promo_codes: [] }) }
+  )
+  return res.cart
+}
+
 /** Complete the cart — creates an order */
 export async function completeCart(cartId: string): Promise<MedusaOrder> {
   const res = await cartRequest<MedusaOrderResponse>(
@@ -195,11 +213,13 @@ export async function completeCart(cartId: string): Promise<MedusaOrder> {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Format a Medusa money amount (integer cents) to a display string */
+/** Format a Medusa money amount to a display string.
+ * Medusa v2 returns amounts as display-unit numbers (e.g. 10 = €10), not cents.
+ */
 export function formatPrice(amount: number, currencyCode = "inr"): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: currencyCode.toUpperCase(),
     maximumFractionDigits: 0,
-  }).format(amount / 100)
+  }).format(amount)
 }

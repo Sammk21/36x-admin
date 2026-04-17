@@ -30,6 +30,7 @@ export const updateVariantInStrapiWorkflow = createWorkflow(
         "product.options.values.metadata",
         "product.strapi_product.*",
         "options.*",
+        "prices.*",
         "metadata"
       ],
       filters: {
@@ -69,18 +70,24 @@ export const updateVariantInStrapiWorkflow = createWorkflow(
         }
       })
 
-      const variantData = transform({ 
-        variants, 
+      const variantData = transform({
+        variants,
       }, (data) => {
         return {
           ...data.variants[0],
           optionValueIds: data.variants[0].options.flatMap((option) => {
-            // find the strapi option value id for the option value
             return data.variants[0].product?.options.flatMap(
               (productOption) => productOption.values.find(
                 (value) => value.value === option.value
               )?.metadata?.strapi_id).filter((value) => value !== undefined)
           }),
+          prices: (data.variants[0] as any).prices?.map((p: any) => ({
+            id: p.id,
+            amount: p.amount,
+            currency_code: p.currency_code,
+            min_quantity: p.min_quantity ?? null,
+            max_quantity: p.max_quantity ?? null,
+          })) || [],
         }
       })
 

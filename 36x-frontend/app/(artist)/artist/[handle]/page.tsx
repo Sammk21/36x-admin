@@ -197,7 +197,7 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
           title={<>Works by {artist.title}</>}
           description={`${products.length} piece${products.length > 1 ? "s" : ""} in this collaboration`}
           products={products}
-          columns={3}
+          // columns={3}
           className="border-t border-white/10"
         />
       )}

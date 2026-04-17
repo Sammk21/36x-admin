@@ -693,7 +693,6 @@ export interface ApiProductCollectionProductCollection
   attributes: {
     banner: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     button: Schema.Attribute.Component<'shared.button', false>;
-    chapter: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -709,10 +708,6 @@ export interface ApiProductCollectionProductCollection
       Schema.Attribute.Unique;
     products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
-    story: Schema.Attribute.Media<
-      'images' | 'files' | 'videos' | 'audios',
-      true
-    >;
     subtitle: Schema.Attribute.String;
     thumbnail: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
@@ -831,6 +826,7 @@ export interface ApiProductVariantProductVariant
       'manyToMany',
       'api::product-option-value.product-option-value'
     >;
+    prices: Schema.Attribute.JSON;
     product: Schema.Attribute.Relation<'manyToOne', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
     sku: Schema.Attribute.String;
@@ -894,7 +890,6 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
       'product.related-product',
       false
     >;
-    specs: Schema.Attribute.Component<'product.product-spec', true>;
     subtitle: Schema.Attribute.String;
     thumbnail: Schema.Attribute.Media<'images'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;

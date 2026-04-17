@@ -122,6 +122,7 @@ export type CollectionTimeline = {
   chapterTitle: string | null
   chapterNumber: number | null
   chapterBanner: StrapiMedia[] | null
+  storyBanner: StrapiMedia[] | null
   product_collection: StrapiProductCollection | null
 }
 
@@ -144,6 +145,14 @@ export type StrapiProductOption = {
   values: StrapiProductOptionValue[]
 }
 
+export type StrapiPrice = {
+  id: string
+  amount: number
+  currency_code: string
+  min_quantity: number | null
+  max_quantity: number | null
+}
+
 export type StrapiProductVariant = {
   id: number
   documentId: string
@@ -153,6 +162,7 @@ export type StrapiProductVariant = {
   images: StrapiMedia[]
   thumbnail: StrapiMedia | null
   option_values: StrapiProductOptionValue[]
+  prices: StrapiPrice[]
 }
 
 export type StrapiSocialLinks = {
@@ -184,6 +194,12 @@ export type StrapiProductSpec = {
   text: string
 }
 
+export type StrapiArtistComponent = {
+  id: number
+  sectionIntro: { id: number; title: string | null; subtitle: string | null }[]
+  artist_collaborations: StrapiArtistCollaboration[]
+}
+
 export type StrapiProduct = {
   id: number
   documentId: string
@@ -200,6 +216,7 @@ export type StrapiProduct = {
   gallery_images: GalleryImage[]
   productDuo: StrapiProductMatcher[]
   specs: StrapiProductSpec[]
+  Artist: StrapiArtistComponent | null
   // Relations
   variants: StrapiProductVariant[]
   options: StrapiProductOption[]

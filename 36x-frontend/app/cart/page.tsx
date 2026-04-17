@@ -13,7 +13,7 @@ import Navbar from "@/components/layout/navbar"
 // Line item row
 // ---------------------------------------------------------------------------
 
-function CartRow({ item }: { item: MedusaLineItem }) {
+function CartRow({ item, currencyCode }: { item: MedusaLineItem; currencyCode: string }) {
   const { updateItem, removeItem, isLoading } = useCart()
 
   return (
@@ -30,7 +30,7 @@ function CartRow({ item }: { item: MedusaLineItem }) {
         {item.thumbnail ? (
           <Image
             src={item.thumbnail}
-            alt={item.title}
+            alt={item.product_title}
             fill
             className="object-cover"
             sizes="80px"
@@ -47,14 +47,14 @@ function CartRow({ item }: { item: MedusaLineItem }) {
         <div className="flex justify-between items-start">
           <div className="min-w-0">
             <p className="text-white font-display text-base uppercase tracking-wide truncate">
-              {item.title}
+              {item.product_title}
             </p>
-            {item.subtitle && (
-              <p className="text-white/40 text-xs font-body mt-0.5">{item.subtitle}</p>
+            {item.product_subtitle && (
+              <p className="text-white/40 text-xs font-body mt-0.5">{item.product_subtitle}</p>
             )}
-            {item.variant?.options?.[0]?.value && (
+            {item.variant_title && (
               <p className="text-white/40 text-xs font-body mt-0.5 uppercase tracking-wider">
-                Size: {item.variant.options[0].value}
+                {item.variant_title}
               </p>
             )}
           </div>
@@ -95,7 +95,7 @@ function CartRow({ item }: { item: MedusaLineItem }) {
 
           {/* Price */}
           <p className="text-white font-body text-sm">
-            {formatPrice(item.total, item.variant?.prices?.[0]?.currency_code)}
+            {formatPrice(item.unit_price * item.quantity, currencyCode)}
           </p>
         </div>
       </div>
@@ -111,6 +111,7 @@ export default function CartPage() {
   const { cart, isLoading } = useCart()
   const items = cart?.items ?? []
   const isEmpty = items.length === 0
+  const currencyCode = cart?.currency_code ?? "inr"
 
   return (
     <div className="min-h-screen bg-[#0e0f11] text-white">
@@ -149,7 +150,7 @@ export default function CartPage() {
             <div>
               <AnimatePresence initial={false}>
                 {items.map((item) => (
-                  <CartRow key={item.id} item={item} />
+                  <CartRow key={item.id} item={item} currencyCode={currencyCode} />
                 ))}
               </AnimatePresence>
             </div>

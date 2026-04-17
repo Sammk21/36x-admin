@@ -13,7 +13,7 @@ import type { MedusaLineItem } from "@/lib/types/medusa"
 // Line item row
 // ---------------------------------------------------------------------------
 
-function LineItem({ item }: { item: MedusaLineItem }) {
+function LineItem({ item, currencyCode }: { item: MedusaLineItem; currencyCode: string }) {
   const { updateItem, removeItem, isLoading } = useCart()
 
   return (
@@ -36,18 +36,21 @@ function LineItem({ item }: { item: MedusaLineItem }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="text-white text-xs font-display uppercase tracking-wide truncate">
-          {item.title}
+          {item.product_title}
         </p>
-        {item.subtitle && (
+        {item.product_subtitle && (
           <p className="text-white/50 text-[10px] font-body mt-0.5 truncate">
-            {item.subtitle}
+            {item.product_subtitle}
           </p>
         )}
-        {item.variant?.options?.[0]?.value && (
+        {item.variant_title && (
           <p className="text-white/40 text-[10px] mt-0.5 uppercase tracking-wider">
-            {item.variant.options[0].value}
+            {item.variant_title}
           </p>
         )}
+        <p className="text-white/30 text-[10px] mt-0.5 font-body">
+          Qty: {item.quantity}
+        </p>
 
         <div className="flex items-center justify-between mt-2">
           {/* Qty stepper */}
@@ -71,9 +74,8 @@ function LineItem({ item }: { item: MedusaLineItem }) {
             </button>
           </div>
 
-          {/* Price */}
           <p className="text-white text-xs font-body">
-            {formatPrice(item.total, item.variant?.prices?.[0]?.currency_code)}
+            {formatPrice(item.unit_price * item.quantity, currencyCode)}
           </p>
         </div>
       </div>
@@ -104,6 +106,7 @@ export default function MiniCart({ open, onClose }: MiniCartProps) {
   const { cart, isLoading } = useCart()
   const items = cart?.items ?? []
   const isEmpty = items.length === 0
+  const currencyCode = cart?.currency_code ?? "inr"
 
   const checkoutUrl = cart?.id ? `/checkout?cart_id=${cart.id}` : "/checkout"
 
@@ -136,12 +139,8 @@ export default function MiniCart({ open, onClose }: MiniCartProps) {
           >
             {/* Glass background */}
             <div
-              className="absolute inset-0 -z-10"
-              style={{
-                background:
-                  "linear-gradient(160deg, #2a3338 0%, #1c2529 40%, #141c1f 100%)",
-                backdropFilter: "blur(24px)",
-              }}
+              className="absolute inset-0 -z-10 bg-black"
+             
             />
 
             {/* Header */}
@@ -175,7 +174,7 @@ export default function MiniCart({ open, onClose }: MiniCartProps) {
                   </p>
                 </div>
               ) : (
-                items.map((item) => <LineItem key={item.id} item={item} />)
+                items.map((item) => <LineItem key={item.id} item={item} currencyCode={currencyCode} />)
               )}
             </div>
 

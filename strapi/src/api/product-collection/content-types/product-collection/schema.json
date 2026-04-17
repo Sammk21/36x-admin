@@ -28,16 +28,6 @@
       "type": "uid",
       "targetField": "title"
     },
-    "chapter": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
-    },
     "banner": {
       "type": "media",
       "multiple": false,
@@ -51,16 +41,6 @@
     "thumbnail": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
-    },
-    "story": {
-      "type": "media",
-      "multiple": true,
       "allowedTypes": [
         "images",
         "files",

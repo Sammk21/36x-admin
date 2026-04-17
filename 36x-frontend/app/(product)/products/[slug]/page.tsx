@@ -14,16 +14,15 @@ interface ProductPageProps {
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
-  // Strapi (content) and Medusa (variants/prices) fire in parallel
-  const [strapiProduct, medusaProduct, feedPosts] = await Promise.all([
+  const [strapiProduct, feedPosts] = await Promise.all([
     strapi.products.findByHandle(slug).catch(() => null),
-    medusa.products.retrieve(slug).catch(() => null),
     strapi.socialFeed.find({ activeOnly: true }).catch(() => []),
   ]);
 
+
+
   if (!strapiProduct) notFound();
 
-  // Reviews keyed by Medusa product ID — run after we have medusaId from Strapi
   const [reviewStats, reviews] = await Promise.all([
     medusa.productReviews.listStats(strapiProduct.medusaId).catch(() => null),
     medusa.productReviews.list(strapiProduct.medusaId).catch(() => []),
@@ -37,7 +36,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     aspect: gi.aspect ?? null,
   }));
 
-  // Artist collaborations → concept section
+  // Artist collaborations → concept section (top-level relation)
   const artists = (strapiProduct.artist_collaborations ?? []).map((a) => ({
     id: a.id,
     title: a.title,
@@ -69,17 +68,20 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     resultImageUrl: strapiImage(m.Result) ?? null,
   }));
 
-console.log(artists)
+  // Derive variants, options and currency from Strapi synced data
+  const strapiVariants = strapiProduct.variants ?? [];
+  const strapiOptions = strapiProduct.options ?? [];
+  const currencyCode =
+    strapiVariants[0]?.prices?.[0]?.currency_code ?? "inr";
 
   return (
     <div className="bg-[#111111]">
-      {/* Variants/options/prices from Medusa; all content from Strapi */}
       <ProductDetail
         title={strapiProduct.title}
         description={strapiProduct.description}
-        variants={medusaProduct?.variants}
-        options={medusaProduct?.options}
-        currencyCode={medusaProduct?.variants?.[0]?.prices?.[0]?.currency_code ?? "inr"}
+        strapiVariants={strapiVariants}
+        strapiOptions={strapiOptions}
+        currencyCode={currencyCode}
         galleryImages={galleryImages}
         galleryVideoUrl={strapiImage(strapiProduct.gallery_video) ?? null}
       />

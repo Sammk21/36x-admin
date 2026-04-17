@@ -93,7 +93,13 @@ const PRODUCT_QUERY = {
       },
     },
     artist_collaborations: { populate: { coverImage: true } },
-    specs: true,
+    Artist: {
+      populate: {
+        sectionIntro: true,
+        artist_collaborations: { populate: { coverImage: true } },
+      },
+    },
+  
     product_collection: true,
     variants: {
       populate: {
@@ -110,8 +116,7 @@ const COLLECTION_QUERY = {
   populate: {
     banner: true,
     thumbnail: true,
-    cover_image: true,
-    comic_strip_image: true,
+    // comic_strip_image: true,
     button: true,
     products: {
       populate: { thumbnail: true },
@@ -202,18 +207,7 @@ const COLLECTIONS_LISTING_QUERY = {
       populate: { bannerImage: true },
     },
     pageShell: true,
-    collection: {
-      populate: {
-        sectionIntro: true,
-        product_collection: {
-          populate: {
-            banner: true,
-            thumbnail: true,
-            products: { populate:  { thumbnail: true } },
-          },
-        },
-      },
-    },
+    collection: true
   },
 }
 
@@ -223,11 +217,9 @@ const COLLECTION_TIMELINE_QUERY = {
     collectionTimeline: {
       populate: {
         chapterBanner: true,
+        storyBanner: true,
         product_collection: {
-          populate: {
-            cover_image: true,
-            comic_strip_image: true,
-          },
+          populate: { banner: true },
         },
       },
     },
@@ -327,11 +319,11 @@ type CollectionFindParams = {
 async function findCollections(params: CollectionFindParams = {}): Promise<StrapiProductCollection[]> {
   const query: Record<string, unknown> = { ...COLLECTION_QUERY }
 
-  if (params.medusaId || params.handle) {
-    query.filters = {
-      ...(params.medusaId && { medusaId: { $eq: params.medusaId } }),
-      ...(params.handle && { handle: { $eq: params.handle } }),
-    }
+  if (params.medusaId) {
+    query.filters = { medusaId: { $eq: params.medusaId } }
+  }
+  if (params.handle) {
+    query.filters = { handle: { $eq: params.handle } };
   }
 
   const res = await strapiRequest<StrapiListResponse<StrapiProductCollection>>(
@@ -339,6 +331,11 @@ async function findCollections(params: CollectionFindParams = {}): Promise<Strap
     query,
     params.next
   )
+
+  if (params.handle) {
+    return res.data.filter((c) => c.handle === params.handle)
+  }
+
   return res.data
 }
 
@@ -347,6 +344,14 @@ async function findOneCollection(
   next?: NextFetchRequestConfig
 ): Promise<StrapiProductCollection | null> {
   const results = await findCollections({ medusaId, next })
+  return results[0] ?? null
+}
+
+async function findCollectionByHandle(
+  handle: string,
+  next?: NextFetchRequestConfig
+): Promise<StrapiProductCollection | null> {
+  const results = await findCollections({ handle, next })
   return results[0] ?? null
 }
 
@@ -481,6 +486,7 @@ export const strapi = {
   collections: {
     find: findCollections,
     findOne: findOneCollection,
+    findCollectionByHandle: findCollectionByHandle,
   },
   artists: {
     find: findArtists,

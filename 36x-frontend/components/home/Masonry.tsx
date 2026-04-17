@@ -1,97 +1,38 @@
 "use client";
 
-import Image from "next/image";
 import { BlurFade } from "@/components/ui/blur-fade";
 import SectionIntro from "../shared/SectionIntro";
-import Link from "next/link";
+import { ProductCard, ProductCardData } from "@/components/shared/ProductCard";
+import { getMasonryAspectClass } from "@/lib/masonryAspect";
 
-export interface MasonryProduct {
-  id: number | string;
-  title: string;
-  handle: string;
-  thumbnailUrl: string | null;
-  price?: string | null;
-  collectionLabel?: string | null;
-}
+export type { ProductCardData as MasonryProduct };
+
+// Tailwind requires full class strings — not dynamic concatenation.
+const COLUMNS_CLASS: Record<number, string> = {
+  1: "columns-1",
+  2: "columns-2",
+  3: "columns-2 md:columns-3",
+  4: "columns-2 md:columns-3 lg:columns-4",
+};
 
 interface MasonryProps {
   title: React.ReactNode;
   description: React.ReactNode;
-  products: MasonryProduct[];
+  products: ProductCardData[];
+  /** Number of masonry columns. Default: 3 */
+  columns?: 1 | 2 | 3 | 4;
   className?: string;
-}
-
-// Repeating pattern of aspect ratios — tall, medium, landscape, tall, medium, landscape...
-// This creates a Pinterest-style visual rhythm regardless of actual image dimensions.
-type AspectType = "tall" | "medium" | "landscape";
-
-const ASPECT_PATTERN: AspectType[] = [
-  "tall",
-  "medium",
-  "landscape",
-  "medium",
-  "tall",
-  "landscape",
-];
-
-const ASPECT_CLASS: Record<AspectType, string> = {
-  tall:      "aspect-[3/5]",
-  medium:    "aspect-[3/4]",
-  landscape: "aspect-[4/3]",
-};
-
-function ProductCard({
-  product,
-  aspect,
-}: {
-  product: MasonryProduct;
-  aspect: AspectType;
-}) {
-  return (
-    <Link href={`/products/${product.handle}`}>
-      <div className="group relative w-full overflow-hidden rounded-2xl bg-[#1a1a1a] cursor-pointer mb-4 break-inside-avoid">
-        <div className={`relative w-full ${ASPECT_CLASS[aspect]} overflow-hidden`}>
-          {product.thumbnailUrl ? (
-            <Image
-              src={product.thumbnailUrl}
-              alt={product.title}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            />
-          ) : (
-            <div className="w-full h-full bg-neutral-800" />
-          )}
-
-          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent transition-opacity duration-300" />
-
-          <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
-            {product.collectionLabel && (
-              <p className="text-[10px] uppercase tracking-widest text-neutral-400 mb-1 font-medium">
-                {product.collectionLabel}
-              </p>
-            )}
-            <p className="text-white font-display text-sm uppercase tracking-wide leading-tight">
-              {product.title}
-            </p>
-            {product.price && (
-              <p className="text-neutral-300 text-xs mt-1 font-body">
-                {product.price}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
 }
 
 export function Masonry({
   title,
   description,
   products,
+  columns = 3,
   className = "",
 }: MasonryProps) {
+  const columnsClass = COLUMNS_CLASS[columns] ?? COLUMNS_CLASS[3];
+
   return (
     <section className={`w-full text-white py-16 md:py-24 ${className}`}>
       <div className="max-w-7xl mx-auto">
@@ -103,15 +44,16 @@ export function Masonry({
             description={description}
           />
         </div>
-        <div className="columns-2 md:columns-3 gap-4 px-4">
+        <div className={`${columnsClass} gap-4 px-4`}>
           {products.map((product, idx) => (
-            <BlurFade key={product.id} delay={0.05 + idx * 0.04} inView>
-              <ProductCard
-                product={product}
-                aspect={ASPECT_PATTERN[idx % ASPECT_PATTERN.length]}
-              />
-            </BlurFade>
-            
+            <div key={product.id} className="break-inside-avoid mb-4">
+              <BlurFade delay={0.05 + idx * 0.04} inView>
+                <ProductCard
+                  product={product}
+                  aspectClass={getMasonryAspectClass(idx, columns)}
+                />
+              </BlurFade>
+            </div>
           ))}
         </div>
       </div>

@@ -16,9 +16,11 @@ import {
   createPaymentCollection,
   initPaymentSession,
   completeCart,
+  applyPromoCode,
+  removePromoCode,
 } from "@/lib/cart"
 import AuthModal from "@/components/auth/AuthModal"
-import type { MedusaCart, MedusaShippingOption, MedusaOrder, MedusaRegion } from "@/lib/types/medusa"
+import type { MedusaCart, MedusaShippingOption, MedusaOrder } from "@/lib/types/medusa"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -26,9 +28,9 @@ import type { MedusaCart, MedusaShippingOption, MedusaOrder, MedusaRegion } from
 
 type Step = "information" | "shipping" | "payment" | "review"
 
+// Shipping is hidden from the default flow — only shown if manually opened
 const STEPS: { id: Step; label: string }[] = [
   { id: "information", label: "Information" },
-  { id: "shipping", label: "Shipping" },
   { id: "payment", label: "Payment" },
   { id: "review", label: "Review" },
 ]
@@ -105,7 +107,8 @@ function Field({
 // ---------------------------------------------------------------------------
 
 function StepBreadcrumb({ current }: { current: Step }) {
-  const currentIdx = STEPS.findIndex((s) => s.id === current)
+  const displayCurrent = current === "shipping" ? "information" : current
+  const currentIdx = STEPS.findIndex((s) => s.id === displayCurrent)
   return (
     <div className="flex items-center gap-2 mb-8 flex-wrap">
       {STEPS.map((step, i) => (
@@ -147,19 +150,59 @@ function StepBreadcrumb({ current }: { current: Step }) {
 // Order summary sidebar
 // ---------------------------------------------------------------------------
 
-function OrderSummary({ cart }: { cart: MedusaCart | null }) {
+function OrderSummary({ cart, onCartUpdate }: { cart: MedusaCart | null; onCartUpdate: (c: MedusaCart) => void }) {
+  const [promoCode, setPromoCode] = useState("")
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoError, setPromoError] = useState<string | null>(null)
+  const [appliedCode, setAppliedCode] = useState<string | null>(null)
+
+  const handleApplyPromo = async () => {
+    if (!cart || !promoCode.trim()) return
+    setPromoLoading(true)
+    setPromoError(null)
+    try {
+      const updated = await applyPromoCode(cart.id, promoCode.trim())
+      onCartUpdate(updated)
+      setAppliedCode(promoCode.trim())
+      setPromoCode("")
+    } catch {
+      setPromoError("Invalid or expired promo code")
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  const handleRemovePromo = async () => {
+    if (!cart || !appliedCode) return
+    setPromoLoading(true)
+    try {
+      const updated = await removePromoCode(cart.id, appliedCode)
+      onCartUpdate(updated)
+      setAppliedCode(null)
+    } catch {
+      // ignore
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
   if (!cart) return null
+
+  const hasDiscount = cart.discount_total > 0
+
   return (
-    <div className="bg-white/0.03 border border-white/10 rounded-2xl p-6 sticky top-8">
+    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 sticky top-8">
       <h3 className="text-xs font-display uppercase tracking-widest text-white/50 mb-4">
         Order Summary
       </h3>
+
+      {/* Items */}
       <div className="space-y-4 mb-6">
         {cart.items.map((item) => (
           <div key={item.id} className="flex gap-3">
             <div className="relative w-14 h-16 rounded-lg overflow-hidden bg-white/5 shrink-0">
               {item.thumbnail ? (
-                <Image src={item.thumbnail} alt={item.title} fill className="object-cover" sizes="56px" />
+                <Image src={item.thumbnail} alt={item.product_title} fill className="object-cover" sizes="56px" />
               ) : (
                 <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
                   <ShoppingBag size={16} className="text-white/20" />
@@ -170,20 +213,64 @@ function OrderSummary({ cart }: { cart: MedusaCart | null }) {
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white text-xs font-display uppercase tracking-wide truncate">{item.title}</p>
-              {item.subtitle && <p className="text-white/40 text-[10px] font-body mt-0.5 truncate">{item.subtitle}</p>}
+              <p className="text-white text-xs font-display uppercase tracking-wide truncate">{item.product_title}</p>
+              {item.variant_title && <p className="text-white/40 text-[10px] font-body mt-0.5 truncate">{item.variant_title}</p>}
+              <p className="text-white/30 text-[10px] font-body mt-0.5">Qty: {item.quantity}</p>
             </div>
             <p className="text-white text-xs font-body shrink-0">
-              {formatPrice(item.total, cart.currency_code)}
+              {formatPrice(item.unit_price * item.quantity, cart.currency_code)}
             </p>
           </div>
         ))}
       </div>
+
+      {/* Promo code */}
+      <div className="mb-4">
+        {appliedCode ? (
+          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+            <span className="text-xs font-body text-green-400">"{appliedCode}" applied</span>
+            <button
+              onClick={handleRemovePromo}
+              disabled={promoLoading}
+              className="text-white/30 hover:text-white text-[11px] font-body transition disabled:opacity-40"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => { setPromoCode(e.target.value); setPromoError(null) }}
+              onKeyDown={(e) => e.key === "Enter" && handleApplyPromo()}
+              placeholder="Promo code"
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs font-body placeholder-white/20 focus:outline-none focus:border-white/30 transition"
+            />
+            <button
+              onClick={handleApplyPromo}
+              disabled={promoLoading || !promoCode.trim()}
+              className="px-4 py-2 rounded-xl bg-white/10 border border-white/10 text-white text-xs font-display uppercase tracking-wider hover:bg-white/20 disabled:opacity-40 transition flex items-center gap-1.5"
+            >
+              {promoLoading ? <Loader2 size={11} className="animate-spin" /> : "Apply"}
+            </button>
+          </div>
+        )}
+        {promoError && <p className="text-red-400 text-[11px] font-body mt-1.5">{promoError}</p>}
+      </div>
+
+      {/* Totals */}
       <div className="space-y-2 border-t border-white/10 pt-4">
         <div className="flex justify-between text-xs font-body text-white/50">
           <span>Subtotal</span>
           <span className="text-white">{formatPrice(cart.subtotal, cart.currency_code)}</span>
         </div>
+        {hasDiscount && (
+          <div className="flex justify-between text-xs font-body text-white/50">
+            <span>Discount</span>
+            <span className="text-green-400">−{formatPrice(cart.discount_total, cart.currency_code)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-xs font-body text-white/50">
           <span>Shipping</span>
           <span className="text-white/40">
@@ -426,12 +513,14 @@ function ReviewStep({
   shippingOption,
   onBack,
   onPlace,
+  onChangeShipping,
   isPlacing,
 }: {
   address: AddressForm
   shippingOption: MedusaShippingOption | null
   onBack: () => void
   onPlace: () => void
+  onChangeShipping: () => void
   isPlacing: boolean
 }) {
   return (
@@ -445,17 +534,25 @@ function ReviewStep({
         <p className="text-white/60 text-xs font-body">{address.email}</p>
       </div>
 
-      {shippingOption && (
-        <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 flex justify-between">
-          <div>
-            <p className="text-[11px] uppercase tracking-widest text-white/40 font-body mb-1">Shipping</p>
-            <p className="text-white text-sm font-body">{shippingOption.name}</p>
-          </div>
-          <p className="text-white text-sm font-body self-center">
-            {shippingOption.amount === 0 ? "Free" : formatPrice(shippingOption.amount, shippingOption.currency_code)}
+      <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 flex items-center justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-widest text-white/40 font-body mb-1">Shipping</p>
+          <p className="text-white text-sm font-body">
+            {shippingOption ? shippingOption.name : "Included"}
           </p>
         </div>
-      )}
+        <div className="flex items-center gap-3">
+          <p className="text-white text-sm font-body">
+            {shippingOption?.amount === 0 || !shippingOption ? "Free" : formatPrice(shippingOption.amount, shippingOption.currency_code)}
+          </p>
+          <button
+            onClick={onChangeShipping}
+            className="text-white/30 hover:text-white text-[11px] font-body uppercase tracking-wider transition"
+          >
+            Change
+          </button>
+        </div>
+      </div>
 
       <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 flex justify-between">
         <p className="text-[11px] uppercase tracking-widest text-white/40 font-body self-center">Payment</p>
@@ -520,6 +617,9 @@ function OrderConfirmed({ order, onContinue }: { order: MedusaOrder; onContinue:
 
 export default function CheckoutPage() {
   const { cart, region, closeCart } = useCart()
+  // Local cart override so promo updates reflect immediately in the summary
+  const [localCart, setLocalCart] = useState<MedusaCart | null>(null)
+  const activeCart = localCart ?? cart
   const { customer } = useAuth()
   const router = useRouter()
 
@@ -563,11 +663,11 @@ export default function CheckoutPage() {
   // ── Step handlers ──────────────────────────────────────────────────────
 
   const handleInformationNext = useCallback(async () => {
-    if (!cart) return
+    if (!activeCart) return
     setStepLoading(true)
     setError(null)
     try {
-      await updateCart(cart.id, {
+      await updateCart(activeCart.id, {
         email: address.email,
         shipping_address: {
           first_name: address.first_name,
@@ -581,36 +681,42 @@ export default function CheckoutPage() {
           phone: address.phone,
         },
       })
-      const opts = await listShippingOptions(cart.id)
+      // Auto-apply first shipping option silently (shipping is included)
+      const opts = await listShippingOptions(activeCart.id)
       setShippingOptions(opts)
-      setStep("shipping")
+      if (opts.length > 0) {
+        const firstId = opts[0].id
+        setSelectedShippingId(firstId)
+        await addShippingMethod(activeCart.id, firstId)
+      }
+      setStep("payment")
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to save address")
     } finally {
       setStepLoading(false)
     }
-  }, [cart, address])
+  }, [activeCart, address])
 
   const handleShippingNext = useCallback(async () => {
-    if (!cart || !selectedShippingId) return
+    if (!activeCart || !selectedShippingId) return
     setStepLoading(true)
     setError(null)
     try {
-      await addShippingMethod(cart.id, selectedShippingId)
-      setStep("payment")
+      await addShippingMethod(activeCart.id, selectedShippingId)
+      setStep("review")
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to add shipping method")
     } finally {
       setStepLoading(false)
     }
-  }, [cart, selectedShippingId])
+  }, [activeCart, selectedShippingId])
 
   const handlePaymentNext = useCallback(async () => {
-    if (!cart) return
+    if (!activeCart) return
     setStepLoading(true)
     setError(null)
     try {
-      const payCol = await createPaymentCollection(cart.id)
+      const payCol = await createPaymentCollection(activeCart.id)
       await initPaymentSession(payCol.id, "pp_system_default")
       setStep("review")
     } catch (e: unknown) {
@@ -618,14 +724,14 @@ export default function CheckoutPage() {
     } finally {
       setStepLoading(false)
     }
-  }, [cart])
+  }, [activeCart])
 
   const handlePlaceOrder = useCallback(async () => {
-    if (!cart) return
+    if (!activeCart) return
     setIsPlacing(true)
     setError(null)
     try {
-      const order = await completeCart(cart.id)
+      const order = await completeCart(activeCart.id)
       localStorage.removeItem("36x_cart_id")
       setConfirmedOrder(order)
     } catch (e: unknown) {
@@ -645,7 +751,7 @@ export default function CheckoutPage() {
     )
   }
 
-  if (!cart || cart.items.length === 0) {
+  if (!activeCart || activeCart.items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <ShoppingBag size={40} className="text-white/20" />
@@ -693,14 +799,14 @@ export default function CheckoutPage() {
                   selected={selectedShippingId}
                   onSelect={setSelectedShippingId}
                   onNext={handleShippingNext}
-                  onBack={() => setStep("information")}
+                  onBack={() => setStep("review")}
                   isLoading={stepLoading}
                 />
               )}
               {step === "payment" && (
                 <PaymentStep
                   onNext={handlePaymentNext}
-                  onBack={() => setStep("shipping")}
+                  onBack={() => setStep("information")}
                   isLoading={stepLoading}
                 />
               )}
@@ -710,6 +816,7 @@ export default function CheckoutPage() {
                   shippingOption={selectedShippingOption}
                   onBack={() => setStep("payment")}
                   onPlace={handlePlaceOrder}
+                  onChangeShipping={() => setStep("shipping")}
                   isPlacing={isPlacing}
                 />
               )}
@@ -717,7 +824,7 @@ export default function CheckoutPage() {
           </AnimatePresence>
         </div>
 
-        <OrderSummary cart={cart} />
+        <OrderSummary cart={activeCart} onCartUpdate={setLocalCart} />
       </div>
     </div>
   )

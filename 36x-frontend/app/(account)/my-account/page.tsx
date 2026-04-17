@@ -1,12 +1,9 @@
-import AccountPage from '@/components/account/my-account'
-import React from 'react'
+import AccountShell from '@/components/account/AccountShell'
 
-const page = () => {
+export default function AccountPage() {
   return (
     <div className="bg-[#0e0f11]">
-      <AccountPage />
+      <AccountShell />
     </div>
-  );
+  )
 }
-
-export default page

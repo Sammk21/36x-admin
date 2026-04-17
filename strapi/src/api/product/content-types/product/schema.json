@@ -72,11 +72,6 @@
       "target": "api::product-option.product-option",
       "mappedBy": "product"
     },
-    "specs": {
-      "type": "component",
-      "component": "product.product-spec",
-      "repeatable": true
-    },
     "product_collection": {
       "type": "relation",
       "relation": "manyToOne",

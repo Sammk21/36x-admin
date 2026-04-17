@@ -1,20 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import { motion, AnimatePresence, Variants } from "motion/react";
-import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-import ConceptSection from "./conceptSection";
-import ReviewsSentiment from "./reviewSentiment";
 import GallerySection from "./gallery-section";
 import { useCart } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/cart";
-import type { MedusaProductVariant, MedusaProductOption } from "@/lib/types/medusa";
-
-type Size = "XS" | "S" | "M" | "L" | "XL" | "XXL";
+import type { StrapiProductVariant, StrapiProductOption } from "@/lib/types/strapi";
 
 type GalleryItem = {
   id: number;
@@ -26,28 +21,13 @@ type GalleryItem = {
 export type ProductDetailProps = {
   title?: string
   description?: string | null
-  variants?: MedusaProductVariant[]
-  options?: MedusaProductOption[]
+  strapiVariants?: StrapiProductVariant[]
+  strapiOptions?: StrapiProductOption[]
   currencyCode?: string
   galleryImages?: GalleryItem[]
   galleryVideoUrl?: string | null
 }
 
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.12 } },
-} as any;
-
-const SIZES: Size[] = ["XS", "S", "M", "L", "XL", "XXL"];
-
-const imgVariant: Variants = {
-  hidden: { opacity: 0, scale: 0.96 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-  },
-};
 
 const slideUp: Variants = {
   hidden: { opacity: 0, y: 32 },
@@ -134,10 +114,10 @@ function StickyButtons({
 }
 
 export default function ProductDetail({
-  title = "HOOD MONARCHY",
-  description = "36X is the anchor piece of the brand — the one that sits closest to our identity. Built from 280 GSM super-combed cotton, it holds its structure and falls naturally. The wide 1×1 rib keeps the neckline crisp through every wash.",
-  variants = [],
-  options = [],
+  title,
+  description,
+  strapiVariants = [],
+  strapiOptions = [],
   currencyCode = "inr",
   galleryImages = [],
   galleryVideoUrl,
@@ -146,38 +126,36 @@ export default function ProductDetail({
   const router = useRouter();
 
   // ── Option selection state ──────────────────────────────────────────────
-  // Map option id → selected value id
+  // Map option medusaId → selected option value medusaId
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [detailsOpen, setDetailsOpen] = useState<boolean>(false);
 
-  // Find the variant that matches all currently selected option values
-  const selectedVariant = variants.find((v) =>
-    v.options.every(
-      (opt) => selectedOptions[opt.option_id] === opt.id
-    )
+  // Find the variant whose option_values match all current selections
+  const selectedVariant = strapiVariants.find((v) =>
+    strapiOptions.every((opt) => {
+      const selectedValueId = selectedOptions[opt.medusaId];
+      return v.option_values.some((ov) => ov.medusaId === selectedValueId);
+    })
   ) ?? null;
 
-  const hasOptions = options.length > 0;
+  const hasOptions = strapiOptions.length > 0;
   const noSelectionMade = hasOptions && !selectedVariant;
 
-  // Price: use first price of selected variant, or cheapest variant
-  const displayVariant = selectedVariant ?? variants[0] ?? null;
+  // Price: selected variant or first variant
+  const displayVariant = selectedVariant ?? strapiVariants[0] ?? null;
   const price = displayVariant?.prices?.[0]
     ? formatPrice(displayVariant.prices[0].amount, displayVariant.prices[0].currency_code ?? currencyCode)
     : null;
 
-  // Fallback to size display if no options from Medusa (dev/preview mode)
-  const [selectedSize, setSelectedSize] = useState<Size | null>(null);
-
-  // ── Cart actions ────────────────────────────────────────────────────────
+  // ── Cart actions — still talk to Medusa via medusaId ───────────────────
   const handleAddToCart = async () => {
     if (!selectedVariant) return;
-    await addItem(selectedVariant.id);
+    await addItem(selectedVariant.medusaId);
   };
 
   const handleBuyNow = async () => {
     if (!selectedVariant) return;
-    await addItem(selectedVariant.id);
+    await addItem(selectedVariant.medusaId);
     router.push("/checkout");
   };
 
@@ -219,24 +197,24 @@ export default function ProductDetail({
               {description}
             </motion.p>
 
-            {/* Medusa options (size, color, etc.) */}
-            {hasOptions ? (
+            {/* Options from Strapi (synced from Medusa) */}
+            {hasOptions && (
               <motion.div variants={slideUp} className="mb-10 space-y-5">
-                {options.map((option) => (
-                  <div key={option.id}>
+                {strapiOptions.map((option) => (
+                  <div key={option.medusaId}>
                     <p className="text-[11px] uppercase tracking-widest text-white/40 font-body mb-2">
                       {option.title}
                     </p>
                     <div className="flex flex-row gap-1">
                       {option.values.map((val, index) => {
-                        const isSelected = selectedOptions[option.id] === val.id;
+                        const isSelected = selectedOptions[option.medusaId] === val.medusaId;
                         return (
                           <b
-                            key={val.id}
+                            key={val.medusaId}
                             onClick={() =>
                               setSelectedOptions((prev) => ({
                                 ...prev,
-                                [option.id]: val.id,
+                                [option.medusaId]: val.medusaId,
                               }))
                             }
                             style={{
@@ -248,12 +226,12 @@ export default function ProductDetail({
                               relative flex first:rounded-lg rounded-l-none last:rounded-r-[12px] h-11 w-15 items-center justify-center
                               border-[0.5px] border-white/90 bg-[#111111] active:scale-96
                               text-sm font-medium hover:text-black cursor-pointer
-                              transition-all hover:bg-white  
+                              transition-all hover:bg-white
                               rounded-[12px] -mr-3 px-5
                               ${isSelected ? "bg-white text-black" : ""}
                             `}
                           >
-                            <span> {val.value}</span>
+                            <span>{val.value}</span>
                           </b>
                         );
                       })}
@@ -266,32 +244,10 @@ export default function ProductDetail({
                   </p>
                 )}
               </motion.div>
-            ) : (
-              // Fallback size picker when no Medusa options loaded
-              <motion.div variants={slideUp} className="mb-10">
-                <div className="flex flex-row -space-x-px">
-                  {["XS", "S", "M", "L", "XL", "XXL"].map((size, index) => (
-                    <b
-                      onClick={() => setSelectedSize(SIZES[index])}
-                      key={size}
-                      style={{ zIndex: selectedSize === size ? 30 : 6 - index }}
-                      className={`
-                        relative flex rounded-l-none last:rounded-r-[12px] h-11 w-15 items-center justify-center
-                        border-[0.5px] border-white/90 bg-[#111111] active:scale-96
-                        text-sm font-medium hover:text-black cursor-pointer
-                        transition-all hover:bg-white
-                        rounded-[12px] -mr-3
-                        ${selectedSize === size ? "bg-white text-black" : ""}
-                      `}
-                    >
-                      {size}
-                    </b>
-                  ))}
-                </div>
-              </motion.div>
             )}
 
             <motion.div variants={slideUp} className="mb-8">
+
               <button
                 onClick={() => setDetailsOpen((prev) => !prev)}
                 className="flex items-center gap-1 text-xs tracking-[0.2em] uppercase text-zinc-300 hover:text-white transition-colors"
@@ -327,7 +283,7 @@ export default function ProductDetail({
 
           <div className="pb-10 lg:pb-10">
             <StickyButtons
-              variantId={selectedVariant?.id ?? null}
+              variantId={selectedVariant?.medusaId ?? null}
               disabled={ctaDisabled}
               onAddToCart={handleAddToCart}
               onBuyNow={handleBuyNow}

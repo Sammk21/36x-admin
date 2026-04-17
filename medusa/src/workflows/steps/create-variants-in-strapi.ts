@@ -11,6 +11,13 @@ export type CreateVariantsInStrapiInput = {
     optionValueIds?: number[]
     imageIds?: number[]
     thumbnailId?: number
+    prices?: {
+      id: string
+      amount: number
+      currency_code: string
+      min_quantity?: number | null
+      max_quantity?: number | null
+    }[]
   }[]
 }
 
@@ -33,6 +40,7 @@ export const createVariantsInStrapiStep = createStep(
           option_values: variant.optionValueIds || [],
           images: variant.imageIds || [],
           thumbnail: variant.thumbnailId,
+          prices: variant.prices || [],
         })
 
         results.push(strapiVariant.data)

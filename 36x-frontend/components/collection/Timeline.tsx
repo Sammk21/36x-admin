@@ -4,6 +4,7 @@ import { useRef, useState, useCallback, useEffect, JSX } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,7 +18,7 @@ export interface Panel {
 export interface CollectionCardData {
   title: string;
   subtitle: string;
-  imageUrl: string;
+  collectionBanner: string;
   accentColor: string;
 }
 
@@ -25,27 +26,27 @@ export interface ChapterData {
   id: string;
   chapter: string;
   chapterSub: string;
-  comicStripUrl?: string;
+  chapterBanner?: string;
   collection?: CollectionCardData;
+  collectionHandle?: string;
 }
 
 // ─── Story (Comic) Card ───────────────────────────────────────────────────────
 
-function StoryCard({ comicStripUrl }: { comicStripUrl?: string }): JSX.Element {
+function StoryCard({ chapterBanner }: { chapterBanner?: string }): JSX.Element {
   return (
     <div
-      className="w-full rounded-2xl overflow-hidden bg-white"
+      className="relative w-full rounded-2xl overflow-hidden bg-white aspect-[3/1]"
       style={{
         border: "2.5px solid #d1d5db",
         boxShadow: "0 6px 48px rgba(0,0,0,0.6)",
       }}
     >
       <Image
-        src={comicStripUrl ?? "/images/img11.png"}
+        src={chapterBanner ?? "/images/img11.png"}
         alt="comic strip"
-        width={1200}
-        height={460}
-        className="w-full h-auto object-cover"
+        fill
+        className="object-cover"
         priority
       />
     </div>
@@ -72,7 +73,7 @@ function CollectionCard({ item }: { item: CollectionCardData }): JSX.Element {
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url(${item.imageUrl})`,
+          backgroundImage: `url(${item.collectionBanner})`,
           backgroundColor: item.accentColor,
           transform: hovered ? "scale(1.045)" : "scale(1)",
           transition: "transform 0.7s ease",
@@ -97,11 +98,17 @@ function CollectionCard({ item }: { item: CollectionCardData }): JSX.Element {
       >
         <h2
           className="text-white font-display leading-none mb-1 md:mt-0 mt-2"
-          style={{ fontSize: "clamp(1.5rem,5.5vw,2.8rem)", letterSpacing: "0.07em" }}
+          style={{
+            fontSize: "clamp(1.5rem,5.5vw,2.8rem)",
+            letterSpacing: "0.07em",
+          }}
         >
           {item.title}
         </h2>
-        <p className="text-white italic font-medium font-body hidden md:block" style={{ fontSize: "1rem" }}>
+        <p
+          className="text-white italic font-medium font-body hidden md:block"
+          style={{ fontSize: "1rem" }}
+        >
           {item.subtitle}
         </p>
         <Button
@@ -246,7 +253,7 @@ function ChapterGroup({ group, spineX, storyLeft, collLeft }: ChapterGroupProps)
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.18, ease: "easeOut" }}
         >
-          <StoryCard comicStripUrl={group.comicStripUrl} />
+          <StoryCard chapterBanner={group.chapterBanner} />
         </motion.div>
       </div>
 
@@ -259,7 +266,13 @@ function ChapterGroup({ group, spineX, storyLeft, collLeft }: ChapterGroupProps)
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
           >
-            <CollectionCard item={group.collection} />
+            {group.collectionHandle ? (
+              <Link href={`/collections/${group.collectionHandle}`} className="block">
+                <CollectionCard item={group.collection} />
+              </Link>
+            ) : (
+              <CollectionCard item={group.collection} />
+            )}
           </motion.div>
         </div>
       )}
@@ -322,9 +335,9 @@ export default function Timeline({ chapters }: TimelineProps): JSX.Element {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto h-auto flex flex-col py-8">
+    <div className="w-full h-auto flex flex-col py-8">
       <div ref={scrollRef} className="relative z-10 flex-1" style={{ overscrollBehavior: "contain" }}>
-        <div ref={containerRef} className="relative mx-auto px-3 sm:px-4 pb-16 pt-4" style={{ maxWidth: "100%", width: "100%" }}>
+        <div ref={containerRef} className="relative mx-auto px-3 sm:px-6 md:px-16 pb-16 pt-4" style={{ maxWidth: "900px", width: "100%" }}>
           <div style={{ minHeight: "20px" }} />
           <VerticalSpine spineX={dims.spineX} />
           {chapters.map((group) => (

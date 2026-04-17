@@ -22,7 +22,7 @@ const Hero: React.FC<HeroProps> = ({
       <img
         src={topImage}
         alt="foreground"
-        className="absolute inset-0 w-full h-full object-cover object-bottom z-10"
+        className="absolute  inset-0 w-full h-full object-cover object-bottom z-10"
         style={{
           WebkitMaskImage:
             "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%)",

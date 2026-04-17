@@ -205,18 +205,29 @@ export type MedusaAddress = {
 
 export type MedusaLineItem = {
   id: string
-  cart_id: string
+  cart_id?: string
+  // Product-level fields (flat on the line item)
   title: string
-  subtitle: string | null
-  thumbnail: string | null
-  variant_id: string | null
-  variant: MedusaProductVariant | null
+  product_title: string
+  product_subtitle: string | null
+  product_handle: string | null
   product_id: string | null
+  // Variant-level fields (flat on the line item)
+  variant_id: string | null
+  variant_title: string | null
+  variant_sku: string | null
+  // Media
+  thumbnail: string | null
+  // Pricing
   quantity: number
   unit_price: number
-  original_total: number
-  discount_total: number
-  total: number
+  compare_at_unit_price: number | null
+  is_tax_inclusive: boolean
+  // Totals (present on cart response)
+  total?: number
+  subtotal?: number
+  original_total?: number
+  discount_total?: number
   metadata: Record<string, unknown> | null
 }
 
@@ -230,16 +241,24 @@ export type MedusaCart = {
   id: string
   currency_code: string
   email: string | null
+  region_id: string | null
+  sales_channel_id: string | null
+  customer_id: string | null
   shipping_address: MedusaAddress | null
   billing_address: MedusaAddress | null
   items: MedusaLineItem[]
   shipping_methods: MedusaShippingMethod[]
-  subtotal: number
-  discount_total: number
-  shipping_total: number
-  tax_total: number
+  // Totals
   total: number
-  region_id: string | null
+  subtotal: number
+  tax_total: number
+  discount_total: number
+  discount_subtotal: number
+  shipping_total: number
+  shipping_subtotal: number
+  item_total: number
+  item_subtotal: number
+  original_total: number
   metadata: Record<string, unknown> | null
 }
 

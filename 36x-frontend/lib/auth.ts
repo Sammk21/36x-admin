@@ -44,6 +44,8 @@ export type MedusaOrder = {
   created_at: string
   total: number
   currency_code: string
+  email: string | null
+  customer_id: string | null
   items: {
     id: string
     title: string
@@ -206,7 +208,7 @@ export async function updateCustomer(
 /** List customer orders */
 export async function listOrders(token: string): Promise<MedusaOrder[]> {
   const res = await authRequest<{ orders: MedusaOrder[] }>(
-    "/store/orders?fields=*items,items.product_id",
+    "/store/orders?fields=*items,items.product_id,+email,+customer_id",
     {},
     token
   )
@@ -319,4 +321,52 @@ export async function attachCartToCustomer(
     { method: "POST", body: JSON.stringify({ customer_id: undefined }) },
     token
   )
+}
+
+/** Request transfer of a guest order to the logged-in customer */
+export async function requestOrderTransfer(
+  token: string,
+  orderId: string,
+  description?: string
+): Promise<void> {
+  await authRequest(
+    `/store/orders/${orderId}/transfer/request`,
+    {
+      method: "POST",
+      body: JSON.stringify(description ? { description } : {}),
+    },
+    token
+  )
+}
+
+/** Initiate Google OAuth — returns a redirect URL */
+export async function initiateGoogleLogin(): Promise<string> {
+  const res = await authRequest<{ location?: string; token?: string }>(
+    "/auth/customer/google",
+    { method: "POST", body: JSON.stringify({}) }
+  )
+  if (res.location) return res.location
+  throw new Error("No redirect URL returned from Google auth")
+}
+
+/** Validate Google OAuth callback and return a JWT token */
+export async function validateGoogleCallback(
+  params: Record<string, string>
+): Promise<string> {
+  const qs = new URLSearchParams(params).toString()
+  const res = await authRequest<{ token: string }>(
+    `/auth/customer/google/callback?${qs}`,
+    { method: "POST", body: JSON.stringify({}) }
+  )
+  return res.token
+}
+
+/** Refresh token (used after social login to get actor-bound token) */
+export async function refreshToken(token: string): Promise<string> {
+  const res = await authRequest<{ token: string }>(
+    "/auth/token/refresh",
+    { method: "POST" },
+    token
+  )
+  return res.token
 }
