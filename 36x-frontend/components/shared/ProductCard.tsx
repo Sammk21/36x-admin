@@ -45,9 +45,10 @@ export function ProductCard({
 
   return (
     <Link href={`/products/${product.handle}`}>
-      <div className={`group w-full cursor-pointer${masonry ? " mb-4 break-inside-avoid" : ""}`}>
-        {/* Image */}
-        <div className={`relative w-full overflow-hidden rounded-2xl bg-[#111] ${resolvedAspect}`}>
+      <div
+        className={`group relative w-full overflow-hidden rounded-2xl bg-[#111] cursor-pointer${masonry ? " mb-4 break-inside-avoid" : ""}`}
+      >
+        <div className={`relative w-full overflow-hidden ${resolvedAspect}`}>
           {product.thumbnailUrl ? (
             <Image
               src={product.thumbnailUrl}
@@ -60,8 +61,17 @@ export function ProductCard({
             <div className="w-full h-full bg-neutral-800" />
           )}
 
-          {/* Hover overlay — desktop only */}
-          <div className="hidden md:flex absolute bottom-0 left-0 right-0 h-[28%] bg-linear-to-t from-black/90 via-black/50 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out flex-col justify-end px-4 pb-4">
+          {/* Gradient overlay — slides up from bottom on hover */}
+          <div
+            className="
+              absolute bottom-0 left-0 right-0
+              h-[28%] 
+              bg-gradient-to-t from-black/90 via-black/50 to-transparent
+              translate-y-full group-hover:translate-y-0
+              transition-transform duration-300 ease-out
+              flex flex-col justify-end px-4 pb-4
+            "
+          >
             {product.collectionLabel && (
               <p className="text-[9px] uppercase tracking-widest text-neutral-400 mb-0.5 font-medium">
                 {product.collectionLabel}
