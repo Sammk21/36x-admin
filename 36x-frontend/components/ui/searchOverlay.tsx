@@ -1,27 +1,69 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, ShoppingBag } from "lucide-react";
+import { Search, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-const products = new Array(6).fill(null).map((_, i) => ({
-  id: i,
-  title: "CONCRETE VERSES",
-  price: "₹ 1,999",
-  image: "/images/product.png", // replace
-}));
+interface SearchProduct {
+  id: string;
+  title: string;
+  handle: string;
+  thumbnail?: string;
+}
+
+const MEDUSA_URL = process.env.NEXT_PUBLIC_MEDUSA_URL || "http://localhost:9000";
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+
+async function searchProducts(query: string): Promise<SearchProduct[]> {
+  if (!query.trim()) return [];
+  const res = await fetch(
+    `${MEDUSA_URL}/store/search?q=${encodeURIComponent(query)}`,
+    {
+      headers: {
+        "x-publishable-api-key": PUBLISHABLE_KEY,
+      },
+    }
+  );
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.hits ?? [];
+}
 
 export default function SearchOverlay({ open, onClose }: Props) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchProduct[]>([]);
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "auto";
   }, [open]);
+
+  // Reset on close
+  useEffect(() => {
+    if (!open) {
+      setQuery("");
+      setResults([]);
+    }
+  }, [open]);
+
+  const handleSearch = useCallback(async (q: string) => {
+    setQuery(q);
+    if (!q.trim()) {
+      setResults([]);
+      return;
+    }
+    setLoading(true);
+    const hits = await searchProducts(q);
+    setResults(hits);
+    setLoading(false);
+  }, []);
 
   return (
     <AnimatePresence>
@@ -39,6 +81,8 @@ export default function SearchOverlay({ open, onClose }: Props) {
                 <Search className="text-white/60" size={18} />
                 <input
                   autoFocus
+                  value={query}
+                  onChange={(e) => handleSearch(e.target.value)}
                   placeholder="Search..."
                   className="w-full bg-transparent outline-none text-white placeholder:text-white/40"
                 />
@@ -57,37 +101,45 @@ export default function SearchOverlay({ open, onClose }: Props) {
                 <p className="text-xs uppercase tracking-wider mb-4">
                   Popular Suggestions
                 </p>
-
                 <div className="space-y-3 text-white text-sm">
-                  <p className="hover:opacity-60 cursor-pointer">
-                    Concrete Verses
-                  </p>
-                  <p className="hover:opacity-60 cursor-pointer">
-                    Black T-Shirts
-                  </p>
-                  <p className="hover:opacity-60 cursor-pointer">
-                    Hood Monarchy
-                  </p>
+                  {["Concrete Verses", "Black T-Shirts", "Hood Monarchy"].map(
+                    (s) => (
+                      <p
+                        key={s}
+                        className="hover:opacity-60 cursor-pointer"
+                        onClick={() => handleSearch(s)}
+                      >
+                        {s}
+                      </p>
+                    )
+                  )}
                 </div>
               </div>
 
               <div className="relative overflow-y-auto pr-2">
+                {loading && (
+                  <p className="text-white/50 text-sm mb-4">Searching...</p>
+                )}
+
+                {!loading && query && results.length === 0 && (
+                  <p className="text-white/50 text-sm mb-4">
+                    No results for &quot;{query}&quot;
+                  </p>
+                )}
+
                 <motion.div
                   initial="hidden"
                   animate="show"
                   variants={{
                     hidden: {},
-                    show: {
-                      transition: {
-                        staggerChildren: 0.08,
-                      },
-                    },
+                    show: { transition: { staggerChildren: 0.08 } },
                   }}
                   className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"
                 >
-                  {products.map((item) => (
-                    <motion.div
+                  {results.map((item) => (
+                    <motion.a
                       key={item.id}
+                      href={`/products/${item.handle}`}
                       variants={{
                         hidden: { opacity: 0, y: 40 },
                         show: { opacity: 1, y: 0 },
@@ -95,35 +147,34 @@ export default function SearchOverlay({ open, onClose }: Props) {
                       whileHover={{ scale: 1.04 }}
                       className="group relative overflow-hidden rounded-3xl"
                     >
-                      {/* IMAGE */}
                       <div className="relative aspect-3/4">
                         <Image
-                          src={item.image}
+                          src={item.thumbnail || "/images/product.png"}
                           alt={item.title}
                           fill
                           className="object-cover"
                         />
                       </div>
-
-                      {/* GRADIENT */}
                       <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
-
-                      {/* TEXT */}
                       <div className="absolute bottom-4 left-4 right-4 text-center text-white">
                         <p className="text-sm font-semibold tracking-wide">
                           {item.title}
                         </p>
-                        <p className="text-xs opacity-80 mt-1">{item.price}</p>
                       </div>
-                    </motion.div>
+                    </motion.a>
                   ))}
                 </motion.div>
 
-                <div className="flex justify-center mt-10 pb-10">
-                  <button className="border border-white/30 px-6 py-3 rounded-full text-white text-sm backdrop-blur-md hover:bg-white/10 transition">
-                    View all →
-                  </button>
-                </div>
+                {results.length > 0 && (
+                  <div className="flex justify-center mt-10 pb-10">
+                    <a
+                      href={`/search?q=${encodeURIComponent(query)}`}
+                      className="border border-white/30 px-6 py-3 rounded-full text-white text-sm backdrop-blur-md hover:bg-white/10 transition"
+                    >
+                      View all →
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
