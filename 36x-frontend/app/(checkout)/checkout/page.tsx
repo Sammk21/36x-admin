@@ -13,6 +13,7 @@ import {
   updateCart,
   listShippingOptions,
   addShippingMethod,
+  listPaymentProviders,
   initiatePayment,
   completeCart,
   applyPromoCode,
@@ -282,11 +283,7 @@ function OrderSummary({ cart, onCartUpdate }: { cart: MedusaCart | null; onCartU
         )}
         <div className="flex justify-between text-xs font-body text-white/50">
           <span>Shipping</span>
-          <span className="text-white/40">
-            {(cart.shipping_total ?? 0) > 0
-              ? convertToLocale({amount:cart.shipping_total ?? 0, currency_code:cart.currency_code})
-              : "Calculated next"}
-          </span>
+          <span className="text-white/40">Free</span>
         </div>
         {(cart.tax_total ?? 0) > 0 && (
           <div className="flex justify-between text-xs font-body text-white/50">
@@ -688,7 +685,6 @@ function ReviewStep({
   address,
   shippingOption,
   paymentProviderLabel,
-  currencyCode,
   onBack,
   onPlace,
   onChangeShipping,
@@ -697,7 +693,6 @@ function ReviewStep({
   address: AddressForm
   shippingOption: StoreShippingOption | null
   paymentProviderLabel: string
-  currencyCode: string
   onBack: () => void
   onPlace: () => void
   onChangeShipping: () => void
@@ -722,9 +717,7 @@ function ReviewStep({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-white text-sm font-body">
-            {shippingOption?.amount === 0 || !shippingOption ? "Free" : formatPrice(shippingOption.amount ?? 0, currencyCode)}
-          </p>
+          <p className="text-white text-sm font-body">Free</p>
           <button
             onClick={onChangeShipping}
             className="text-white/30 hover:text-white text-[11px] font-body uppercase tracking-wider transition"
@@ -803,12 +796,10 @@ export default function CheckoutPage() {
   const { customer } = useAuth()
   const router = useRouter()
 
-  console.log(cart)
-
   const [step, setStep] = useState<Step>("information")
   const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS)
   const [shippingOptions, setShippingOptions] = useState<StoreShippingOption[]>([])
-  const [calculatedPrices, setCalculatedPrices] = useState<Record<string, number>>({})
+  const [calculatedPrices] = useState<Record<string, number>>({})
   const [selectedShippingId, setSelectedShippingId] = useState<string | null>(null)
   const [paymentProviders, setPaymentProviders] = useState<HttpTypes.StorePaymentProvider[]>([])
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null)
@@ -857,13 +848,21 @@ export default function CheckoutPage() {
         email: address.email,
         shipping_address: shippingAddress,
       })
-      // Auto-apply first shipping option silently (shipping is included)
+      // Auto-apply first shipping option silently
       const opts = await listShippingOptions(activeCart.id)
       setShippingOptions(opts)
       if (opts.length > 0) {
         const firstId = opts[0].id
         setSelectedShippingId(firstId)
         await addShippingMethod(activeCart.id, firstId)
+      }
+      // Pre-load payment providers
+      if (activeCart.region_id) {
+        const providers = await listPaymentProviders(activeCart.region_id)
+        setPaymentProviders(providers)
+        if (providers.length > 0 && !selectedProviderId) {
+          setSelectedProviderId(providers[0].id)
+        }
       }
       setStep("payment")
     } catch (e: unknown) {
@@ -886,6 +885,17 @@ export default function CheckoutPage() {
       setStepLoading(false)
     }
   }, [activeCart, selectedShippingId])
+
+  // Load providers when entering payment step if not already loaded
+  useEffect(() => {
+    if (step !== "payment" || paymentProviders.length > 0 || !activeCart?.region_id) return
+    listPaymentProviders(activeCart.region_id).then((providers) => {
+      setPaymentProviders(providers)
+      if (providers.length > 0 && !selectedProviderId) {
+        setSelectedProviderId(providers[0].id)
+      }
+    }).catch(() => {/* silently ignore */})
+  }, [step, activeCart?.region_id, paymentProviders.length, selectedProviderId])
 
   const handlePaymentNext = useCallback(async () => {
     if (!activeCart) return
@@ -1005,7 +1015,6 @@ export default function CheckoutPage() {
                   address={address}
                   shippingOption={selectedShippingOption}
                   paymentProviderLabel={selectedProviderLabel}
-                  currencyCode={cart?.currency_code ?? "inr"}
                   onBack={() => setStep("payment")}
                   onPlace={handlePlaceOrder}
                   onChangeShipping={() => setStep("shipping")}

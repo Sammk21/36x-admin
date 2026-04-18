@@ -10,12 +10,6 @@ import type { HttpTypes } from "@medusajs/types";
 type MedusaLineItem = HttpTypes.StoreCartLineItem;
 import Navbar from "@/components/layout/navbar";
 import { convertToLocale } from "@/lib/util/money";
-import { getPercentageDiff } from "@/lib/util/get-percentage-diff";
-import clsx from "clsx";
-
-// ---------------------------------------------------------------------------
-// Line item row
-// ---------------------------------------------------------------------------
 
 function CartRow({ item, currencyCode }: { item: MedusaLineItem; currencyCode: string }) {
   const { updateItem, removeItem, isLoading } = useCart()
@@ -107,9 +101,6 @@ function CartRow({ item, currencyCode }: { item: MedusaLineItem; currencyCode: s
   );
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function CartPage() {
   const { cart, isLoading } = useCart()
@@ -175,9 +166,7 @@ export default function CartPage() {
                   </div>
                   <div className="flex justify-between text-sm font-body text-white/50">
                     <span>Shipping</span>
-                    <span className="text-white/40">
-                      Calculated at checkout
-                    </span>
+                    <span className="text-white/40">Free</span>
                   </div>
                   {(cart?.tax_total ?? 0) > 0 && (
                     <div className="flex justify-between text-sm font-body text-white/50">

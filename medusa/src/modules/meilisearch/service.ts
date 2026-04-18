@@ -1,7 +1,5 @@
 import { MedusaError } from "@medusajs/framework/utils"
 
-const { MeiliSearch } = require("meilisearch")
-
 type MeilisearchOptions = {
   host: string
   apiKey: string
@@ -13,6 +11,7 @@ export type MeilisearchIndexType = "product"
 export default class MeilisearchModuleService {
   private client: any
   private options: MeilisearchOptions
+  private clientReady: Promise<void>
 
   constructor({}: Record<string, unknown>, options: MeilisearchOptions) {
     if (!options.host || !options.apiKey || !options.productIndexName) {
@@ -21,11 +20,14 @@ export default class MeilisearchModuleService {
         "Meilisearch options are required"
       )
     }
-    this.client = new MeiliSearch({
-      host: options.host,
-      apiKey: options.apiKey,
-    })
     this.options = options
+    this.clientReady = import("meilisearch").then((mod) => {
+      const MeiliSearch = mod.Meilisearch
+      this.client = new MeiliSearch({
+        host: options.host,
+        apiKey: options.apiKey,
+      })
+    })
   }
 
   async getIndexName(type: MeilisearchIndexType) {
@@ -41,6 +43,7 @@ export default class MeilisearchModuleService {
     data: Record<string, unknown>[],
     type: MeilisearchIndexType = "product"
   ) {
+    await this.clientReady
     const indexName = await this.getIndexName(type)
     const index = this.client.index(indexName)
     const documents = data.map((item) => ({ ...item, id: item.id }))
@@ -51,6 +54,7 @@ export default class MeilisearchModuleService {
     documentIds: string[],
     type: MeilisearchIndexType = "product"
   ) {
+    await this.clientReady
     const indexName = await this.getIndexName(type)
     const index = this.client.index(indexName)
     const results = await Promise.all(
@@ -69,12 +73,14 @@ export default class MeilisearchModuleService {
     documentIds: string[],
     type: MeilisearchIndexType = "product"
   ) {
+    await this.clientReady
     const indexName = await this.getIndexName(type)
     const index = this.client.index(indexName)
     await index.deleteDocuments(documentIds)
   }
 
   async search(query: string, type: MeilisearchIndexType = "product") {
+    await this.clientReady
     const indexName = await this.getIndexName(type)
     const index = this.client.index(indexName)
     return await index.search(query)

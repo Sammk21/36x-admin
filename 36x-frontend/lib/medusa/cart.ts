@@ -211,6 +211,16 @@ export async function addShippingMethod(
   return cart
 }
 
+/** List payment providers available for a cart's region */
+export async function listPaymentProviders(
+  regionId: string
+): Promise<HttpTypes.StorePaymentProvider[]> {
+  const { payment_providers } = await sdk.store.payment.listPaymentProviders({
+    region_id: regionId,
+  })
+  return payment_providers
+}
+
 /**
  * Create a payment collection and initialize a payment session in one step.
  *
@@ -271,5 +281,5 @@ export function formatPrice(amount: number, currencyCode = "inr"): string {
     style: "currency",
     currency: currencyCode.toUpperCase(),
     maximumFractionDigits: 0,
-  }).format(amount / 100)
+  }).format(amount)
 }

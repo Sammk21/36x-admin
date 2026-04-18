@@ -903,6 +903,39 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSentimentPickerSentimentPicker
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'sentiment_pickers';
+  info: {
+    displayName: 'Sentiment Picker';
+    pluralName: 'sentiment-pickers';
+    singularName: 'sentiment-picker';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::sentiment-picker.sentiment-picker'
+    > &
+      Schema.Attribute.Private;
+    medusaUserId: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    review: Schema.Attribute.Text;
+    sentiment_value: Schema.Attribute.Enumeration<
+      ['angry', 'worried', 'okay', 'happy', 'great']
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSocialFeedPostSocialFeedPost
   extends Struct.CollectionTypeSchema {
   collectionName: 'social_feed_posts';
@@ -1463,6 +1496,7 @@ declare module '@strapi/strapi' {
       'api::product-option.product-option': ApiProductOptionProductOption;
       'api::product-variant.product-variant': ApiProductVariantProductVariant;
       'api::product.product': ApiProductProduct;
+      'api::sentiment-picker.sentiment-picker': ApiSentimentPickerSentimentPicker;
       'api::social-feed-post.social-feed-post': ApiSocialFeedPostSocialFeedPost;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

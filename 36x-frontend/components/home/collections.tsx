@@ -184,9 +184,9 @@ const HeroCollection: React.FC<HeroCollectionProps> = ({ collections = [], title
       className="relative flex min-h-fit w-full"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="flex-col flex justify-between w-full md:flex-row">
+      <div className="flex-col flex justify-between items-center w-full md:flex-row">
         {/* ── Left: copy ─────────────────────────────────────────── */}
-        <div className="flex w-full md:pl-20 my-auto shrink-0 flex-col mb-8 md:mb-14 md:w-[45%]">
+        <div className="flex flex-col md:w-[50%] lg:w-full gap-6 max-w-xl md:pl-16 mb-3">
           {titleWords.length > 0 && (
             <h1
               className="text-6xl lg:text-7xl md:text-start text-center font-display tracking-normal leading-[104%] text-white"
