@@ -211,7 +211,7 @@ function OrderSummary({ cart, onCartUpdate }: { cart: MedusaCart | null; onCartU
           <div key={item.id} className="flex gap-3">
             <div className="relative w-14 h-16 rounded-lg overflow-hidden bg-white/5 shrink-0">
               {item.thumbnail ? (
-                <Image src={item.thumbnail} alt={item.product_title} fill className="object-cover" sizes="56px" />
+                <Image src={item.thumbnail} alt={item.product_title || ""} fill className="object-cover" sizes="56px" />
               ) : (
                 <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
                   <ShoppingBag size={16} className="text-white/20" />
