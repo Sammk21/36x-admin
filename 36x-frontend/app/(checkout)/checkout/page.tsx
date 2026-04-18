@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ChevronRight, Check, Loader2, ShoppingBag, Lock } from "lucide-react"
+import { ChevronRight, Check, Loader2, ShoppingBag, Lock, X } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { useCart } from "@/lib/store/cart"
 import { useAuth } from "@/lib/store/auth"
@@ -13,17 +13,26 @@ import {
   updateCart,
   listShippingOptions,
   addShippingMethod,
-  createPaymentCollection,
-  initPaymentSession,
+  initiatePayment,
   completeCart,
   applyPromoCode,
   removePromoCode,
 } from "@/lib/cart"
 import AuthModal from "@/components/auth/AuthModal"
-import type { MedusaCart, MedusaShippingOption, MedusaOrder } from "@/lib/types/medusa"
+import type { HttpTypes } from "@medusajs/types";
+import { convertToLocale } from "@/lib/util/money"
+import { listAddresses, MedusaAddress } from "@/lib/auth"
+
 
 // ---------------------------------------------------------------------------
-// Types
+// Local type aliases
+// ---------------------------------------------------------------------------
+
+type MedusaCart = HttpTypes.StoreCart
+type StoreShippingOption = HttpTypes.StoreCartShippingOption
+
+// ---------------------------------------------------------------------------
+// Step definitions
 // ---------------------------------------------------------------------------
 
 type Step = "information" | "shipping" | "payment" | "review"
@@ -147,7 +156,7 @@ function StepBreadcrumb({ current }: { current: Step }) {
 }
 
 // ---------------------------------------------------------------------------
-// Order summary sidebar
+// Order summary sidebar (with promo code input)
 // ---------------------------------------------------------------------------
 
 function OrderSummary({ cart, onCartUpdate }: { cart: MedusaCart | null; onCartUpdate: (c: MedusaCart) => void }) {
@@ -198,7 +207,7 @@ function OrderSummary({ cart, onCartUpdate }: { cart: MedusaCart | null; onCartU
 
       {/* Items */}
       <div className="space-y-4 mb-6">
-        {cart.items.map((item) => (
+        {(cart.items ?? []).map((item) => (
           <div key={item.id} className="flex gap-3">
             <div className="relative w-14 h-16 rounded-lg overflow-hidden bg-white/5 shrink-0">
               {item.thumbnail ? (
@@ -263,7 +272,7 @@ function OrderSummary({ cart, onCartUpdate }: { cart: MedusaCart | null; onCartU
       <div className="space-y-2 border-t border-white/10 pt-4">
         <div className="flex justify-between text-xs font-body text-white/50">
           <span>Subtotal</span>
-          <span className="text-white">{formatPrice(cart.subtotal, cart.currency_code)}</span>
+          <span className="text-white">{convertToLocale({amount:cart.subtotal ?? 0, currency_code: cart.currency_code})}</span>
         </div>
         {hasDiscount && (
           <div className="flex justify-between text-xs font-body text-white/50">
@@ -274,18 +283,20 @@ function OrderSummary({ cart, onCartUpdate }: { cart: MedusaCart | null; onCartU
         <div className="flex justify-between text-xs font-body text-white/50">
           <span>Shipping</span>
           <span className="text-white/40">
-            {cart.shipping_total > 0 ? formatPrice(cart.shipping_total, cart.currency_code) : "Calculated next"}
+            {(cart.shipping_total ?? 0) > 0
+              ? convertToLocale({amount:cart.shipping_total ?? 0, currency_code:cart.currency_code})
+              : "Calculated next"}
           </span>
         </div>
-        {cart.tax_total > 0 && (
+        {(cart.tax_total ?? 0) > 0 && (
           <div className="flex justify-between text-xs font-body text-white/50">
             <span>Tax</span>
-            <span className="text-white">{formatPrice(cart.tax_total, cart.currency_code)}</span>
+            <span className="text-white">{convertToLocale({amount:cart.tax_total ?? 0, currency_code:cart.currency_code})}</span>
           </div>
         )}
         <div className="flex justify-between text-sm font-display uppercase tracking-wide border-t border-white/10 pt-3 mt-2">
           <span className="text-white/70">Total</span>
-          <span className="text-white">{formatPrice(cart.total, cart.currency_code)}</span>
+          <span className="text-white">{convertToLocale({amount:cart.total ?? 0, currency_code:cart.currency_code})}</span>
         </div>
       </div>
     </div>
@@ -293,7 +304,66 @@ function OrderSummary({ cart, onCartUpdate }: { cart: MedusaCart | null; onCartU
 }
 
 // ---------------------------------------------------------------------------
-// Step 1 — Information
+// Saved address picker (shown when authenticated + has saved addresses)
+// ---------------------------------------------------------------------------
+
+function SavedAddressPicker({
+  addresses,
+  selectedId,
+  onSelect,
+}: {
+  addresses: MedusaAddress[]
+  selectedId: string | null
+  onSelect: (a: MedusaAddress | null) => void
+}) {
+  return (
+    <div className="mb-6">
+      <p className="text-[11px] uppercase tracking-widest text-white/40 font-body mb-3">
+        Saved Addresses
+      </p>
+      <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+        {/* "New address" tile */}
+        <button
+          onClick={() => onSelect(null)}
+          className={`snap-start shrink-0 w-44 text-left px-4 py-3.5 rounded-xl border transition ${
+            selectedId === null
+              ? "border-white bg-white/10"
+              : "border-white/10 bg-white/[0.03] hover:border-white/25"
+          }`}
+        >
+          <p className="text-[10px] uppercase tracking-widest text-white/40 font-body mb-1.5">New</p>
+          <p className="text-white text-xs font-display uppercase">Enter manually</p>
+        </button>
+
+        {addresses.map((a) => {
+          const name = [a.first_name, a.last_name].filter(Boolean).join(" ") || "—"
+          const line = [a.address_1, a.city].filter(Boolean).join(", ")
+          return (
+            <button
+              key={a.id}
+              onClick={() => onSelect(a)}
+              className={`snap-start shrink-0 w-44 text-left px-4 py-3.5 rounded-xl border transition ${
+                selectedId === a.id
+                  ? "border-white bg-white/10"
+                  : "border-white/10 bg-white/[0.03] hover:border-white/25"
+              }`}
+            >
+              <p className="text-[10px] uppercase tracking-widest text-white/40 font-body mb-1.5">
+                {a.is_default_shipping ? "Default" : "Saved"}
+              </p>
+              <p className="text-white text-xs font-display uppercase truncate">{name}</p>
+              <p className="text-white/40 text-[11px] font-body truncate mt-0.5">{line}</p>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Step 1 — Information (email + shipping address + billing address)
+// Per docs: update cart with email, shipping_address, and billing_address
 // ---------------------------------------------------------------------------
 
 function InformationStep({
@@ -307,9 +377,52 @@ function InformationStep({
   onNext: () => void
   isLoading: boolean
 }) {
-  const { customer, isAuthenticated } = useAuth()
+  const { customer, token, isAuthenticated } = useAuth()
   const { region } = useCart()
   const [authOpen, setAuthOpen] = useState(false)
+  const [savedAddresses, setSavedAddresses] = useState<MedusaAddress[]>([])
+  const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null)
+
+  // Fetch saved addresses once customer is authenticated
+  useEffect(() => {
+    if (!token || !isAuthenticated) return
+    listAddresses(token)
+      .then((addrs) => {
+        setSavedAddresses(addrs)
+        // Auto-select default shipping address if present
+        const def = addrs.find((a) => a.is_default_shipping) ?? addrs[0]
+        if (def) handleSelectSaved(def)
+      })
+      .catch(() => {/* silently ignore */})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, isAuthenticated])
+
+  const handleSelectSaved = (a: MedusaAddress | null) => {
+    if (!a) {
+      // "New address" — clear address fields (keep email/phone from customer)
+      setSelectedSavedId(null);
+      (["address_1", "address_2", "city", "province", "postal_code"] as const).forEach(
+        (f) => onChange(f, "")
+      )
+      onChange("first_name", customer?.first_name ?? "")
+      onChange("last_name", customer?.last_name ?? "")
+      onChange("phone", customer?.phone ?? "")
+      return
+    }
+    setSelectedSavedId(a.id)
+    const map: [keyof AddressForm, string | null][] = [
+      ["first_name", a.first_name],
+      ["last_name", a.last_name],
+      ["phone", a.phone],
+      ["address_1", a.address_1],
+      ["address_2", a.address_2],
+      ["city", a.city],
+      ["province", a.province],
+      ["postal_code", a.postal_code],
+      ["country_code", a.country_code],
+    ]
+    map.forEach(([field, val]) => onChange(field, val ?? ""))
+  }
 
   const valid =
     address.first_name &&
@@ -338,6 +451,15 @@ function InformationStep({
             Signed in as <span className="text-white">{customer?.first_name} {customer?.last_name}</span>
           </p>
         </div>
+      )}
+
+      {/* Saved address picker — only shown when authenticated + has saved addresses */}
+      {isAuthenticated && savedAddresses.length > 0 && (
+        <SavedAddressPicker
+          addresses={savedAddresses}
+          selectedId={selectedSavedId}
+          onSelect={(a) => handleSelectSaved(a)}
+        />
       )}
 
       <div className="grid grid-cols-2 gap-3">
@@ -384,23 +506,38 @@ function InformationStep({
 
 // ---------------------------------------------------------------------------
 // Step 2 — Shipping
+// Per docs: list options, handle price_type === "calculated" separately,
+// add shipping method via sdk.store.cart.addShippingMethod
 // ---------------------------------------------------------------------------
 
 function ShippingStep({
   options,
+  calculatedPrices,
   selected,
   onSelect,
   onNext,
   onBack,
   isLoading,
+  currencyCode,
 }: {
-  options: MedusaShippingOption[]
+  options: StoreShippingOption[]
+  calculatedPrices: Record<string, number>
   selected: string | null
   onSelect: (id: string) => void
   onNext: () => void
   onBack: () => void
   isLoading: boolean
+  currencyCode: string
 }) {
+  const getPrice = (opt: StoreShippingOption): string | null => {
+    if (opt.price_type === "flat") {
+      return opt.amount === 0 ? "Free" : convertToLocale({amount:opt.amount, currency_code: currencyCode})
+    }
+    const calc = calculatedPrices[opt.id]
+    if (calc === undefined) return null // still loading
+    return calc === 0 ? "Free" : convertToLocale({amount:calc, currency_code: currencyCode})
+  }
+
   return (
     <div>
       {isLoading && options.length === 0 ? (
@@ -413,27 +550,31 @@ function ShippingStep({
         </p>
       ) : (
         <div className="space-y-3 mb-6">
-          {options.map((opt) => (
-            <button
-              key={opt.id}
-              onClick={() => onSelect(opt.id)}
-              className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border transition ${
-                selected === opt.id
-                  ? "border-white bg-white/10"
-                  : "border-white/10 bg-white/0.03 hover:border-white/30"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition ${selected === opt.id ? "border-white" : "border-white/30"}`}>
-                  {selected === opt.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+          {options.map((opt) => {
+            const price = getPrice(opt)
+            return (
+              <button
+                key={opt.id}
+                onClick={() => onSelect(opt.id)}
+                disabled={price === null} // calculated price not yet loaded
+                className={`w-full flex items-center justify-between px-5 py-4 rounded-xl border transition ${
+                  selected === opt.id
+                    ? "border-white bg-white/10"
+                    : "border-white/10 bg-white/0.03 hover:border-white/30"
+                } disabled:opacity-40`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition ${selected === opt.id ? "border-white" : "border-white/30"}`}>
+                    {selected === opt.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                  <p className="text-white text-sm font-display uppercase tracking-wide text-left">{opt.name}</p>
                 </div>
-                <p className="text-white text-sm font-display uppercase tracking-wide text-left">{opt.name}</p>
-              </div>
-              <p className="text-white text-sm font-body">
-                {opt.amount === 0 ? "Free" : formatPrice(opt.amount, opt.currency_code)}
-              </p>
-            </button>
-          ))}
+                <p className="text-white text-sm font-body">
+                  {price ?? <Loader2 size={12} className="animate-spin" />}
+                </p>
+              </button>
+            )
+          })}
         </div>
       )}
 
@@ -456,30 +597,65 @@ function ShippingStep({
 
 // ---------------------------------------------------------------------------
 // Step 3 — Payment
+// Per docs: list payment providers, let customer select, then call
+// sdk.store.payment.initiatePaymentSession(cart, { provider_id })
+// Re-fetch cart after to get updated payment_collection
 // ---------------------------------------------------------------------------
 
 function PaymentStep({
+  paymentProviders,
+  selectedProvider,
+  onSelectProvider,
   onNext,
   onBack,
   isLoading,
 }: {
+  paymentProviders: HttpTypes.StorePaymentProvider[]
+  selectedProvider: string | null
+  onSelectProvider: (id: string) => void
   onNext: () => void
   onBack: () => void
   isLoading: boolean
 }) {
-  // Only manual (COD) available — auto-selected
+  // For each known provider, show a friendly label
+  const getProviderLabel = (id: string) => {
+    if (id.startsWith("pp_system_default")) return "Cash on Delivery"
+    if (id.startsWith("pp_stripe_")) return "Credit / Debit Card (Stripe)"
+    return id
+  }
+
   return (
     <div>
       <div className="space-y-3 mb-6">
-        <div className="w-full flex items-center gap-3 px-5 py-4 rounded-xl border border-white bg-white/10">
-          <div className="w-4 h-4 rounded-full border-2 border-white flex items-center justify-center">
-            <div className="w-1.5 h-1.5 rounded-full bg-white" />
-          </div>
-          <div className="text-left">
-            <p className="text-white text-sm font-display uppercase tracking-wide">Cash on Delivery</p>
-            <p className="text-white/40 text-xs font-body">Pay when your order arrives</p>
-          </div>
-        </div>
+        {paymentProviders.map((provider) => (
+          <button
+            key={provider.id}
+            onClick={() => onSelectProvider(provider.id)}
+            className={`w-full flex items-center gap-3 px-5 py-4 rounded-xl border transition ${
+              selectedProvider === provider.id
+                ? "border-white bg-white/10"
+                : "border-white/10 bg-white/0.03 hover:border-white/30"
+            }`}
+          >
+            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition ${selectedProvider === provider.id ? "border-white" : "border-white/30"}`}>
+              {selectedProvider === provider.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+            </div>
+            <div className="text-left">
+              <p className="text-white text-sm font-display uppercase tracking-wide">
+                {getProviderLabel(provider.id)}
+              </p>
+              {provider.id.startsWith("pp_system_default") && (
+                <p className="text-white/40 text-xs font-body">Pay when your order arrives</p>
+              )}
+            </div>
+          </button>
+        ))}
+
+        {paymentProviders.length === 0 && !isLoading && (
+          <p className="text-white/30 text-sm font-body py-4 text-center">
+            No payment methods available.
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5 text-white/30 text-[11px] font-body mb-6">
@@ -493,7 +669,7 @@ function PaymentStep({
         </button>
         <button
           onClick={onNext}
-          disabled={isLoading}
+          disabled={!selectedProvider || isLoading}
           className="flex-2 py-4 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 transition flex items-center justify-center gap-2"
         >
           {isLoading && <Loader2 size={13} className="animate-spin" />}
@@ -511,13 +687,17 @@ function PaymentStep({
 function ReviewStep({
   address,
   shippingOption,
+  paymentProviderLabel,
+  currencyCode,
   onBack,
   onPlace,
   onChangeShipping,
   isPlacing,
 }: {
   address: AddressForm
-  shippingOption: MedusaShippingOption | null
+  shippingOption: StoreShippingOption | null
+  paymentProviderLabel: string
+  currencyCode: string
   onBack: () => void
   onPlace: () => void
   onChangeShipping: () => void
@@ -543,7 +723,7 @@ function ReviewStep({
         </div>
         <div className="flex items-center gap-3">
           <p className="text-white text-sm font-body">
-            {shippingOption?.amount === 0 || !shippingOption ? "Free" : formatPrice(shippingOption.amount, shippingOption.currency_code)}
+            {shippingOption?.amount === 0 || !shippingOption ? "Free" : formatPrice(shippingOption.amount ?? 0, currencyCode)}
           </p>
           <button
             onClick={onChangeShipping}
@@ -556,7 +736,7 @@ function ReviewStep({
 
       <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 flex justify-between">
         <p className="text-[11px] uppercase tracking-widest text-white/40 font-body self-center">Payment</p>
-        <p className="text-white text-sm font-body">Cash on Delivery</p>
+        <p className="text-white text-sm font-body">{paymentProviderLabel}</p>
       </div>
 
       <div className="flex gap-3 pt-2">
@@ -577,10 +757,10 @@ function ReviewStep({
 }
 
 // ---------------------------------------------------------------------------
-// Confirmed
+// Order confirmed
 // ---------------------------------------------------------------------------
 
-function OrderConfirmed({ order, onContinue }: { order: MedusaOrder; onContinue: () => void }) {
+function OrderConfirmed({ order, onContinue }: { order: HttpTypes.StoreOrder; onContinue: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.96 }}
@@ -599,7 +779,7 @@ function OrderConfirmed({ order, onContinue }: { order: MedusaOrder; onContinue:
         Thank you! You'll receive a confirmation email shortly.
       </p>
       <p className="text-white text-lg font-body mb-8">
-        {formatPrice(order.total, order.currency_code)}
+        {convertToLocale({amount:order.total ?? 0, currency_code: order.currency_code})}
       </p>
       <button
         onClick={onContinue}
@@ -623,63 +803,59 @@ export default function CheckoutPage() {
   const { customer } = useAuth()
   const router = useRouter()
 
+  console.log(cart)
+
   const [step, setStep] = useState<Step>("information")
   const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS)
+  const [shippingOptions, setShippingOptions] = useState<StoreShippingOption[]>([])
+  const [calculatedPrices, setCalculatedPrices] = useState<Record<string, number>>({})
+  const [selectedShippingId, setSelectedShippingId] = useState<string | null>(null)
+  const [paymentProviders, setPaymentProviders] = useState<HttpTypes.StorePaymentProvider[]>([])
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null)
+  const [stepLoading, setStepLoading] = useState(false)
+  const [isPlacing, setIsPlacing] = useState(false)
+  const [confirmedOrder, setConfirmedOrder] = useState<HttpTypes.StoreOrder | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  // Sync address defaults once region + customer are available
+  // Pre-fill address from region/customer
   useEffect(() => {
     setAddress((prev) => ({
       ...prev,
-      country_code: prev.country_code || region?.countries?.[0]?.iso_2 || "",
+      country_code: prev.country_code || region?.countries?.[0]?.iso_2 || "in",
       first_name: prev.first_name || customer?.first_name || "",
       last_name: prev.last_name || customer?.last_name || "",
       phone: prev.phone || customer?.phone || "",
       email: prev.email || customer?.email || "",
     }))
   }, [region, customer])
-  const [shippingOptions, setShippingOptions] = useState<MedusaShippingOption[]>([])
-  const [selectedShippingId, setSelectedShippingId] = useState<string | null>(null)
-  const [stepLoading, setStepLoading] = useState(false)
-  const [isPlacing, setIsPlacing] = useState(false)
-  const [confirmedOrder, setConfirmedOrder] = useState<MedusaOrder | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => { closeCart() }, [closeCart])
-
-  useEffect(() => {
-    if (customer) {
-      setAddress((prev) => ({
-        ...prev,
-        first_name: prev.first_name || customer.first_name || "",
-        last_name: prev.last_name || customer.last_name || "",
-        phone: prev.phone || customer.phone || "",
-      }))
-    }
-  }, [customer])
 
   const setField = (field: keyof AddressForm, value: string) =>
     setAddress((prev) => ({ ...prev, [field]: value }))
 
-  // ── Step handlers ──────────────────────────────────────────────────────
+  // ── Step 1: Information ─────────────────────────────────────────────────
+  // Per docs: update cart email + shipping_address + billing_address
 
   const handleInformationNext = useCallback(async () => {
     if (!activeCart) return
     setStepLoading(true)
     setError(null)
     try {
+      const shippingAddress = {
+        first_name: address.first_name,
+        last_name: address.last_name,
+        phone: address.phone,
+        address_1: address.address_1,
+        address_2: address.address_2,
+        city: address.city,
+        province: address.province,
+        postal_code: address.postal_code,
+        country_code: address.country_code,
+      }
       await updateCart(activeCart.id, {
         email: address.email,
-        shipping_address: {
-          first_name: address.first_name,
-          last_name: address.last_name,
-          address_1: address.address_1,
-          address_2: address.address_2,
-          city: address.city,
-          province: address.province,
-          postal_code: address.postal_code,
-          country_code: address.country_code,
-          phone: address.phone,
-        },
+        shipping_address: shippingAddress,
       })
       // Auto-apply first shipping option silently (shipping is included)
       const opts = await listShippingOptions(activeCart.id)
@@ -716,32 +892,35 @@ export default function CheckoutPage() {
     setStepLoading(true)
     setError(null)
     try {
-      const payCol = await createPaymentCollection(activeCart.id)
-      await initPaymentSession(payCol.id, "pp_system_default")
+      await initiatePayment(activeCart, selectedProviderId ?? "pp_system_default")
       setStep("review")
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to initialize payment")
     } finally {
       setStepLoading(false)
     }
-  }, [activeCart])
+  }, [activeCart, selectedProviderId])
 
   const handlePlaceOrder = useCallback(async () => {
     if (!activeCart) return
     setIsPlacing(true)
     setError(null)
     try {
-      const order = await completeCart(activeCart.id)
-      localStorage.removeItem("36x_cart_id")
-      setConfirmedOrder(order)
+      const result = await completeCart(activeCart.id)
+      if (result.type === "order" && result.order) {
+        localStorage.removeItem("36x_cart_id")
+        setConfirmedOrder(result.order)
+      } else {
+        setError("Payment incomplete. Please try again.")
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to place order")
     } finally {
       setIsPlacing(false)
     }
-  }, [cart])
+  }, [activeCart])
 
-  // ── Render ─────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────
 
   if (confirmedOrder) {
     return (
@@ -751,7 +930,7 @@ export default function CheckoutPage() {
     )
   }
 
-  if (!activeCart || activeCart.items.length === 0) {
+  if (!activeCart || activeCart?.items?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <ShoppingBag size={40} className="text-white/20" />
@@ -764,6 +943,12 @@ export default function CheckoutPage() {
   }
 
   const selectedShippingOption = shippingOptions.find((o) => o.id === selectedShippingId) ?? null
+  const selectedProviderLabel = (() => {
+    if (!selectedProviderId) return "None"
+    if (selectedProviderId.startsWith("pp_system_default")) return "Cash on Delivery"
+    if (selectedProviderId.startsWith("pp_stripe_")) return "Credit / Debit Card"
+    return selectedProviderId
+  })()
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-8 py-10">
@@ -796,15 +981,20 @@ export default function CheckoutPage() {
               {step === "shipping" && (
                 <ShippingStep
                   options={shippingOptions}
+                  calculatedPrices={calculatedPrices}
                   selected={selectedShippingId}
                   onSelect={setSelectedShippingId}
                   onNext={handleShippingNext}
                   onBack={() => setStep("review")}
                   isLoading={stepLoading}
+                  currencyCode={cart?.currency_code ?? "inr"}
                 />
               )}
               {step === "payment" && (
                 <PaymentStep
+                  paymentProviders={paymentProviders}
+                  selectedProvider={selectedProviderId}
+                  onSelectProvider={setSelectedProviderId}
                   onNext={handlePaymentNext}
                   onBack={() => setStep("information")}
                   isLoading={stepLoading}
@@ -814,6 +1004,8 @@ export default function CheckoutPage() {
                 <ReviewStep
                   address={address}
                   shippingOption={selectedShippingOption}
+                  paymentProviderLabel={selectedProviderLabel}
+                  currencyCode={cart?.currency_code ?? "inr"}
                   onBack={() => setStep("payment")}
                   onPlace={handlePlaceOrder}
                   onChangeShipping={() => setStep("shipping")}

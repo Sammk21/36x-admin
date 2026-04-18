@@ -1,13 +1,17 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import { Minus, Plus, X, ShoppingBag, ArrowLeft } from "lucide-react"
-import { motion, AnimatePresence } from "motion/react"
-import { useCart } from "@/lib/store/cart"
-import { formatPrice } from "@/lib/cart"
-import type { MedusaLineItem } from "@/lib/types/medusa"
-import Navbar from "@/components/layout/navbar"
+import Image from "next/image";
+import Link from "next/link";
+import { Minus, Plus, X, ShoppingBag, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { useCart } from "@/lib/store/cart";
+import { formatPrice } from "@/lib/medusa/cart";
+import type { HttpTypes } from "@medusajs/types";
+type MedusaLineItem = HttpTypes.StoreCartLineItem;
+import Navbar from "@/components/layout/navbar";
+import { convertToLocale } from "@/lib/util/money";
+import { getPercentageDiff } from "@/lib/util/get-percentage-diff";
+import clsx from "clsx";
 
 // ---------------------------------------------------------------------------
 // Line item row
@@ -30,7 +34,7 @@ function CartRow({ item, currencyCode }: { item: MedusaLineItem; currencyCode: s
         {item.thumbnail ? (
           <Image
             src={item.thumbnail}
-            alt={item.product_title}
+            alt={item.product_title || ""}
             fill
             className="object-cover"
             sizes="80px"
@@ -100,7 +104,7 @@ function CartRow({ item, currencyCode }: { item: MedusaLineItem; currencyCode: s
         </div>
       </div>
     </motion.div>
-  )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -129,7 +133,7 @@ export default function CartPage() {
           </Link>
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-display uppercase tracking-widest text-white mb-10">
+        <h1 className="text-4xl md:text-5xl font-display uppercase  text-white mb-10">
           Your Cart
         </h1>
 
@@ -158,40 +162,42 @@ export default function CartPage() {
             {/* Summary */}
             <div className="lg:sticky lg:top-28 h-fit">
               <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 space-y-4">
-                <h3 className="text-xs font-display uppercase tracking-widest text-white/50">
+                <h3 className="text-2xl  font-display uppercase  t text-white/50">
                   Summary
                 </h3>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-body text-white/50">
+                  <div className="flex justify-between text-sm font-body text-white/50">
                     <span>Subtotal</span>
                     <span className="text-white">
-                      {formatPrice(cart?.subtotal ?? 0, cart?.currency_code)}
+                      {convertToLocale({amount:cart?.subtotal ?? 0, currency_code:cart?.currency_code})}
                     </span>
                   </div>
-                  <div className="flex justify-between text-xs font-body text-white/50">
+                  <div className="flex justify-between text-sm font-body text-white/50">
                     <span>Shipping</span>
-                    <span className="text-white/40">Calculated at checkout</span>
+                    <span className="text-white/40">
+                      Calculated at checkout
+                    </span>
                   </div>
                   {(cart?.tax_total ?? 0) > 0 && (
-                    <div className="flex justify-between text-xs font-body text-white/50">
+                    <div className="flex justify-between text-sm font-body text-white/50">
                       <span>Tax</span>
                       <span className="text-white">
-                        {formatPrice(cart!.tax_total, cart!.currency_code)}
+                        {convertToLocale({amount:cart!.tax_total, currency_code: cart!.currency_code})}
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm font-display uppercase tracking-wide border-t border-white/10 pt-3 mt-1">
+                  <div className="flex justify-between text-xl font-display uppercase  border-t border-white/10 pt-3 mt-1">
                     <span className="text-white/70">Total</span>
                     <span className="text-white">
-                      {formatPrice(cart?.total ?? 0, cart?.currency_code)}
+                      {convertToLocale({amount:cart?.total ?? 0, currency_code: cart?.currency_code})}
                     </span>
                   </div>
                 </div>
 
                 <Link
                   href="/checkout"
-                  className="block w-full text-center py-4 rounded-xl bg-white text-black text-xs font-display uppercase tracking-widest hover:bg-white/90 transition"
+                  className="block w-full text-center py-4 rounded-xl bg-white text-black text-md font-display uppercase  hover:bg-white/90 transition"
                 >
                   Proceed to Checkout
                 </Link>
@@ -205,5 +211,5 @@ export default function CartPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

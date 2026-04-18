@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 import GallerySection from "./gallery-section";
 import { useCart } from "@/lib/store/cart";
-import { formatPrice } from "@/lib/cart";
+import { formatPrice } from "@/lib/medusa/cart";
 import type { StrapiProductVariant, StrapiProductOption } from "@/lib/types/strapi";
 
 type GalleryItem = {
@@ -220,7 +220,7 @@ export default function ProductDetail({
                             style={{
                               zIndex: isSelected
                                 ? 30
-                                : option.values.length - index,
+                                : (option.values?.length ?? 0) - index,
                             }}
                             className={`
                               relative flex first:rounded-lg rounded-l-none last:rounded-r-[12px] h-11 w-15 items-center justify-center

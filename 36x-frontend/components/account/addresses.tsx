@@ -1,120 +1,19 @@
-// "use client";
-
-// import { useRouter } from "next/navigation";
-// import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
-// import { motion, AnimatePresence } from "framer-motion";
-// import { useState } from "react";
-
-// const initialAddresses = [
-//   {
-//     id: 1,
-//     name: "John Doe",
-//     phone: "+91 98765 43210",
-//     address: `123, 1st Floor, 6th Street\nBangalore KA\nIndia 560102`,
-//     lastUsed: false,
-//   },
-//   {
-//     id: 2,
-//     name: "John Doe",
-//     phone: "+91 98765 43210",
-//     address: `123, 1st Floor, 6th Street\nBangalore KA\nIndia 560102`,
-//     lastUsed: true,
-//   },
-// ];
-
-// export default function AddressPage() {
-//   const router = useRouter();
-//   const [addresses, setAddresses] = useState(initialAddresses);
-
-//   const deleteAddress = (id: number) => {
-//     setAddresses((prev) => prev.filter((a) => a.id !== id));
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-black text-white px-4 md:px-10 pb-10 pt-18">
-      
-//       {/* HEADER */}
-//       <div className="flex items-center justify-between">
-        
-//         <button
-//           onClick={() => router.back()}
-//           className="w-10 h-10 flex items-center justify-center border border-white/20 rounded-lg"
-//         >
-//           <ArrowLeft size={18} />
-//         </button>
-
-//         <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight">
-//           Your Addresses
-//         </h1>
-
-//         <button className="flex items-center gap-2 border border-white/20 px-4 py-2 rounded-lg">
-//           <Plus size={16} />
-//           Add New Address
-//         </button>
-//       </div>
-
-//       {/* GRID */}
-//       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-//         <AnimatePresence>
-//           {addresses.map((addr, i) => (
-//             <motion.div
-//               key={addr.id}
-//               initial={{ opacity: 0, y: 40 }}
-//               animate={{ opacity: 1, y: 0 }}
-//               exit={{ opacity: 0, scale: 0.9 }}
-//               className="bg-zinc-900 rounded-2xl p-6"
-//             >
-//               {/* TITLE */}
-//               <div className="flex justify-between items-center mb-4">
-//                 <h2 className="uppercase font-bold text-lg">
-//                   Address #{i + 1}
-//                 </h2>
-
-//                 {addr.lastUsed && (
-//                   <span className="text-xs text-white/50">
-//                     (Last Used)
-//                   </span>
-//                 )}
-//               </div>
-
-//               {/* CONTENT */}
-//               <div className="text-sm text-white/80 space-y-2">
-//                 <p className="text-white font-medium">{addr.name}</p>
-//                 <p>{addr.phone}</p>
-
-//                 <div className="pt-2 whitespace-pre-line">
-//                   {addr.address}
-//                 </div>
-//               </div>
-
-//               {/* ACTIONS */}
-//               <div className="flex gap-4 mt-6">
-//                 <button className="flex-1 flex items-center justify-center gap-2 border border-white/20 py-2 rounded-lg hover:bg-white/10 transition">
-//                   <Pencil size={16} />
-//                   Edit
-//                 </button>
-
-//                 <button
-//                   onClick={() => deleteAddress(addr.id)}
-//                   className="flex-1 flex items-center justify-center gap-2 border border-white/20 py-2 rounded-lg hover:border-red-500 hover:text-red-500 transition"
-//                 >
-//                   <Trash2 size={16} />
-//                   Delete
-//                 </button>
-//               </div>
-//             </motion.div>
-//           ))}
-//         </AnimatePresence>
-//       </div>
-//     </div>
-//   );
-// }
-
 "use client";
-import { useState } from "react";
-import * as Dialog from "@radix-ui/react-dialog";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
+import { X, Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/store/auth";
+import {
+  listAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  type MedusaAddress,
+} from "@/lib/auth";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
+
 const BackIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
     <polyline points="15 18 9 12 15 6" strokeLinecap="round" strokeLinejoin="round" />
@@ -140,184 +39,279 @@ const TrashIcon = () => (
     <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-const CloseIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-    <line x1="18" y1="6" x2="6" y2="18" strokeLinecap="round" />
-    <line x1="6" y1="6" x2="18" y2="18" strokeLinecap="round" />
-  </svg>
-);
 
-// ─── Initial Data ─────────────────────────────────────────────────────────────
-const INITIAL_ADDRESSES = [
-  {
-    id: 1,
-    name: "John Doe",
-    phone: "+91 98765 43210",
-    line1: "123, 1st Floor, 6th Street",
-    line2: "Bangalore KA",
-    line3: "India 560102",
-    lastUsed: false,
-  },
-  {
-    id: 2,
-    name: "John Doe",
-    phone: "+91 98765 43210",
-    line1: "123, 1st Floor, 6th Street",
-    line2: "Bangalore KA",
-    line3: "India 560102",
-    lastUsed: true,
-  },
-];
+// ─── Form types ───────────────────────────────────────────────────────────────
 
-const EMPTY_FORM = { name: "", phone: "", line1: "", line2: "", line3: "" };
+interface AddressForm {
+  first_name: string;
+  last_name: string;
+  phone: string;
+  address_1: string;
+  address_2: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  country_code: string;
+}
 
-// ─── Field Component ──────────────────────────────────────────────────────────
-function Field({ label, name, value, onChange, placeholder, type = "text" }:any) {
+const EMPTY_FORM: AddressForm = {
+  first_name: "",
+  last_name: "",
+  phone: "",
+  address_1: "",
+  address_2: "",
+  city: "",
+  province: "",
+  postal_code: "",
+  country_code: "in",
+};
+
+function addressToForm(a: MedusaAddress): AddressForm {
+  return {
+    first_name: a.first_name ?? "",
+    last_name: a.last_name ?? "",
+    phone: a.phone ?? "",
+    address_1: a.address_1 ?? "",
+    address_2: a.address_2 ?? "",
+    city: a.city ?? "",
+    province: a.province ?? "",
+    postal_code: a.postal_code ?? "",
+    country_code: a.country_code ?? "in",
+  };
+}
+
+// ─── Field ────────────────────────────────────────────────────────────────────
+
+function Field({ label, name, value, onChange, placeholder, type = "text" }: {
+  label: string; name: string; value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string; type?: string;
+}) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[10px] font-bold  text-zinc-500 uppercase">{label}</label>
+      <label className="text-[11px] uppercase tracking-widest text-white/40 font-body">{label}</label>
       <input
         type={type}
         name={name}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="bg-[#0e0f11] border border-white/10 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/30 transition-colors"
+        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-body placeholder-white/20 focus:outline-none focus:border-white/30 transition"
       />
     </div>
   );
 }
 
-// ─── Add / Edit Dialog ────────────────────────────────────────────────────────
-function AddressDialog({ open, onOpenChange, initial, onSave, mode = "add" }:any) {
-  const [form, setForm] = useState(initial || EMPTY_FORM);
+// ─── Address Modal (Add / Edit) ───────────────────────────────────────────────
 
-  // sync when dialog opens with new initial data
-  const handleOpenChange = (val:any) => {
-    if (val) setForm(initial || EMPTY_FORM);
-    onOpenChange(val);
-  };
+function AddressModal({ open, onClose, initial, onSave, mode = "add", saving }: {
+  open: boolean;
+  onClose: () => void;
+  initial: AddressForm;
+  onSave: (form: AddressForm) => Promise<void>;
+  mode?: "add" | "edit";
+  saving: boolean;
+}) {
+  const [form, setForm] = useState<AddressForm>(initial);
 
-  const handleChange = (e:any) => setForm((f:any) => ({ ...f, [e.target.name]: e.target.value }));
+  useEffect(() => {
+    if (open) setForm(initial);
+  }, [open, initial]);
 
-  const handleSave = () => {
-    if (!form.name.trim() || !form.line1.trim()) return;
-    onSave(form);
-    onOpenChange(false);
-  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+  const canSubmit = form.first_name.trim() && form.address_1.trim();
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
-      <Dialog.Portal>
-        {/* Overlay */}
-        <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 data-[state=open]:animate-[fadeIn_150ms_ease]" />
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            key="addr-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            onClick={onClose}
+          />
 
-        {/* Content */}
-        <Dialog.Content
-          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50
-            w-[92vw] max-w-[480px] bg-[#1a1c1f] border border-white/10 rounded-2xl
-            p-6 shadow-2xl focus:outline-none
-            data-[state=open]:animate-[dialogIn_180ms_ease]"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <Dialog.Title className="font-display text-3xl  leading-none">
-              {mode === "edit" ? "Edit Address" : "Add New Address"}
-            </Dialog.Title>
-            <Dialog.Close className="flex items-center justify-center w-8 h-8 rounded-lg border border-white/10 text-zinc-400 hover:text-white hover:border-white/25 transition-all">
-              <CloseIcon />
-            </Dialog.Close>
-          </div>
-
-          {/* Form */}
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Full Name" name="name" value={form.name} onChange={handleChange} placeholder="John Doe" />
-              <Field label="Phone" name="phone" value={form.phone} onChange={handleChange} placeholder="+91 98765 43210" type="tel" />
-            </div>
-            <Field label="Address Line 1" name="line1" value={form.line1} onChange={handleChange} placeholder="123, 1st Floor, 6th Street" />
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="City / State" name="line2" value={form.line2} onChange={handleChange} placeholder="Bangalore KA" />
-              <Field label="Country & PIN" name="line3" value={form.line3} onChange={handleChange} placeholder="India 560102" />
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 mt-6">
-            <Dialog.Close className="flex-1 border border-white/10 rounded-lg py-2.5 text-sm text-zinc-400 hover:text-white hover:border-white/25 transition-all">
-              Cancel
-            </Dialog.Close>
-            <button
-              onClick={handleSave}
-              className="flex-1 bg-white text-[#0e0f11] rounded-lg py-2.5 text-sm font-semibold hover:bg-zinc-100 transition-colors"
+          <motion.div
+            key="addr-panel"
+            initial={{ opacity: 0, scale: 0.96, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 16 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+          >
+            <div
+              className="relative w-full max-w-lg bg-[#0e0f11] rounded-2xl border border-white/10 shadow-2xl pointer-events-auto overflow-hidden max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
             >
-              {mode === "edit" ? "Save Changes" : "Add Address"}
-            </button>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 text-white/30 hover:text-white transition z-10"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="px-8 py-8">
+                <div className="mb-6">
+                  <p className="text-3xl font-display uppercase text-white">
+                    {mode === "edit" ? "Edit Address" : "Add New Address"}
+                  </p>
+                  <p className="text-white/30 text-sm font-body mt-1">
+                    {mode === "edit" ? "Update your saved address" : "Add a new delivery address"}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="First Name *" name="first_name" value={form.first_name} onChange={handleChange} placeholder="John" />
+                    <Field label="Last Name" name="last_name" value={form.last_name} onChange={handleChange} placeholder="Doe" />
+                  </div>
+                  <Field label="Phone" name="phone" value={form.phone} onChange={handleChange} placeholder="+91 98765 43210" type="tel" />
+                  <Field label="Address Line 1 *" name="address_1" value={form.address_1} onChange={handleChange} placeholder="123, 1st Floor, 6th Street" />
+                  <Field label="Address Line 2" name="address_2" value={form.address_2} onChange={handleChange} placeholder="Apt, suite, unit (optional)" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="City" name="city" value={form.city} onChange={handleChange} placeholder="Bangalore" />
+                    <Field label="State / Province" name="province" value={form.province} onChange={handleChange} placeholder="Karnataka" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Postal Code" name="postal_code" value={form.postal_code} onChange={handleChange} placeholder="560001" />
+                    <Field label="Country Code" name="country_code" value={form.country_code} onChange={handleChange} placeholder="in" />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={onClose}
+                    className="flex-1 py-3 rounded-xl border border-white/10 text-white/40 text-sm font-body hover:text-white hover:border-white/25 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => onSave(form)}
+                    disabled={saving || !canSubmit}
+                    className="flex-1 py-3 rounded-xl bg-white text-black text-sm font-display uppercase tracking-widest hover:bg-white/90 disabled:opacity-40 transition flex items-center justify-center gap-2"
+                  >
+                    {saving && <Loader2 size={13} className="animate-spin" />}
+                    {mode === "edit" ? "Save Changes" : "Add Address"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
-// ─── Delete Confirm Dialog ────────────────────────────────────────────────────
-function DeleteDialog({ open, onOpenChange, onConfirm }:any) {
+// ─── Delete Confirm Modal ─────────────────────────────────────────────────────
+
+function DeleteModal({ open, onClose, onConfirm, deleting }: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+  deleting: boolean;
+}) {
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" />
-        <Dialog.Content
-          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50
-            w-[92vw] max-w-[360px] bg-[#1a1c1f] border border-white/10 rounded-2xl
-            p-6 shadow-2xl focus:outline-none"
-        >
-          <Dialog.Title className="font-display text-2xl  mb-2">Delete Address?</Dialog.Title>
-          <Dialog.Description className="text-zinc-400 text-sm mb-6">
-            This address will be permanently removed from your account.
-          </Dialog.Description>
-          <div className="flex gap-3">
-            <Dialog.Close className="flex-1 border border-white/10 rounded-lg py-2.5 text-sm text-zinc-400 hover:text-white hover:border-white/25 transition-all">
-              Cancel
-            </Dialog.Close>
-            <button
-              onClick={onConfirm}
-              className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-semibold hover:bg-red-500 transition-colors"
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            key="del-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            onClick={onClose}
+          />
+
+          <motion.div
+            key="del-panel"
+            initial={{ opacity: 0, scale: 0.96, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 16 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+          >
+            <div
+              className="relative w-full max-w-sm bg-[#0e0f11] rounded-2xl border border-white/10 shadow-2xl pointer-events-auto overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
             >
-              Delete
-            </button>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 text-white/30 hover:text-white transition z-10"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="px-8 py-8">
+                <p className="text-3xl font-display uppercase text-white mb-2">Delete Address?</p>
+                <p className="text-white/40 text-sm font-body mb-6">
+                  This address will be permanently removed from your account.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={onClose}
+                    className="flex-1 py-3 rounded-xl border border-white/10 text-white/40 text-sm font-body hover:text-white hover:border-white/25 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={onConfirm}
+                    disabled={deleting}
+                    className="flex-1 py-3 rounded-xl bg-red-600 text-white text-sm font-display uppercase tracking-widest hover:bg-red-500 disabled:opacity-60 transition flex items-center justify-center gap-2"
+                  >
+                    {deleting && <Loader2 size={13} className="animate-spin" />}
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
 
 // ─── Address Card ─────────────────────────────────────────────────────────────
-function AddressCard({ address, index, onEdit, onDelete }:any) {
+
+function AddressCard({ address, index, onEdit, onDelete }: {
+  address: MedusaAddress;
+  index: number;
+  onEdit: (a: MedusaAddress) => void;
+  onDelete: (id: string) => void;
+}) {
+  const fullName = [address.first_name, address.last_name].filter(Boolean).join(" ");
+  const cityLine = [address.city, address.province].filter(Boolean).join(", ");
+  const countryLine = [address.postal_code, address.country_code?.toUpperCase()].filter(Boolean).join(" — ");
+
   return (
     <div>
-      {/* Section heading */}
       <div className="flex items-baseline gap-4 mb-4">
-        <h2 className="font-display text-3xl  leading-none">Address #{index + 1}</h2>
-        {address.lastUsed && (
-          <span className="font-display text-xl  text-zinc-500 leading-none">(Last Used)</span>
+        <h2 className="font-display text-3xl leading-none">Address #{index + 1}</h2>
+        {address.is_default_shipping && (
+          <span className="font-display text-xl text-zinc-500 leading-none">(Default)</span>
         )}
       </div>
 
-      {/* Card */}
-      <div className="bg-[#1a1c1f] border border-white/8 rounded-xl p-5 flex flex-col gap-0">
-        {/* Contact */}
+      <div className="bg-black border border-white/8 rounded-xl p-5 flex flex-col gap-0">
         <div className="pb-4">
-          <p className="text-white font-semibold text-sm">{address.name}</p>
-          <p className="text-zinc-400 text-sm mt-0.5">{address.phone}</p>
+          {fullName && <p className="text-white font-semibold text-sm">{fullName}</p>}
+          {address.phone && <p className="text-zinc-400 text-sm mt-0.5">{address.phone}</p>}
         </div>
-        {/* Address */}
         <div className="border-t border-white/10 pt-4 pb-5">
-          <p className="text-zinc-300 text-sm leading-relaxed">{address.line1}</p>
-          <p className="text-zinc-300 text-sm">{address.line2}</p>
-          <p className="text-zinc-300 text-sm">{address.line3}</p>
+          {address.address_1 && <p className="text-zinc-300 text-sm leading-relaxed">{address.address_1}</p>}
+          {address.address_2 && <p className="text-zinc-300 text-sm">{address.address_2}</p>}
+          {cityLine && <p className="text-zinc-300 text-sm">{cityLine}</p>}
+          {countryLine && <p className="text-zinc-300 text-sm">{countryLine}</p>}
         </div>
-        {/* Actions */}
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => onEdit(address)}
@@ -340,44 +334,122 @@ function AddressCard({ address, index, onEdit, onDelete }:any) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default function AddressesPage({ onBack }:any) {
-  const [addresses, setAddresses] = useState(INITIAL_ADDRESSES);
+
+export default function AddressesPage() {
+  const { token, isLoading: authLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  const [addresses, setAddresses] = useState<MedusaAddress[]>([]);
+  const [loading, setLoading] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
-  let nextId = Math.max(...addresses.map((a) => a.id)) + 1;
+  const [editTarget, setEditTarget] = useState<MedusaAddress | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleAdd = (form:any) => {
-    setAddresses((prev) => [...prev, { id: nextId++, ...form, lastUsed: false }]);
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  const loadAddresses = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const data = await listAddresses(token);
+      setAddresses(data);
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    loadAddresses();
+  }, [loadAddresses]);
+
+  const handleAdd = async (form: AddressForm) => {
+    if (!token) return;
+    setSaving(true);
+    try {
+      await addAddress(token, {
+        first_name: form.first_name || null,
+        last_name: form.last_name || null,
+        phone: form.phone || null,
+        address_1: form.address_1 || null,
+        address_2: form.address_2 || null,
+        city: form.city || null,
+        province: form.province || null,
+        postal_code: form.postal_code || null,
+        country_code: form.country_code || null,
+      });
+      await loadAddresses();
+      setAddOpen(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleEditSave = (form:any) => {
-    // @ts-ignore
-    setAddresses((prev) => prev.map((a) => (a.id === editTarget.id ? { ...a, ...form } : a)));
-    setEditTarget(null);
+  const handleEditSave = async (form: AddressForm) => {
+    if (!token || !editTarget) return;
+    setSaving(true);
+    try {
+      await updateAddress(token, editTarget.id, {
+        first_name: form.first_name || null,
+        last_name: form.last_name || null,
+        phone: form.phone || null,
+        address_1: form.address_1 || null,
+        address_2: form.address_2 || null,
+        city: form.city || null,
+        province: form.province || null,
+        postal_code: form.postal_code || null,
+        country_code: form.country_code || null,
+      });
+      await loadAddresses();
+      setEditTarget(null);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = () => {
-    setAddresses((prev) => prev.filter((a) => a.id !== deleteId));
-    setDeleteId(null);
+  const handleDelete = async () => {
+    if (!token || !deleteId) return;
+    setDeleting(true);
+    try {
+      await deleteAddress(token, deleteId);
+      await loadAddresses();
+      setDeleteId(null);
+    } finally {
+      setDeleting(false);
+    }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0e0f11] flex items-center justify-center">
+        <p className="text-white/40 text-sm font-body">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   return (
     <>
-     
-
-      <div className="font-body min-h-screen mt-16  text-white">
+      <div className="font-body min-h-screen mt-16 text-white">
         {/* Header */}
         <header className="flex items-center justify-between px-6 lg:px-10 py-8">
           <button
-            onClick={onBack}
+            onClick={() => router.back()}
             className="flex items-center justify-center w-10 h-10 border border-white/12 rounded-xl text-zinc-300 hover:text-white hover:border-white/25 transition-all"
             aria-label="Go back"
           >
             <BackIcon />
           </button>
 
-          <h1 className="font-display text-4xl lg:text-5xl  leading-none">Your Addresses</h1>
+          <h1 className="font-display text-4xl lg:text-5xl leading-none">Your Addresses</h1>
 
           <button
             onClick={() => setAddOpen(true)}
@@ -391,9 +463,13 @@ export default function AddressesPage({ onBack }:any) {
 
         {/* Address Grid */}
         <main className="px-6 lg:px-10 pb-16">
-          {addresses.length === 0 ? (
+          {loading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <p className="font-display text-3xl  text-zinc-600">No Addresses Yet</p>
+              <p className="text-white/40 text-sm font-body">Loading addresses…</p>
+            </div>
+          ) : addresses.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <p className="font-display text-3xl text-zinc-600">No Addresses Yet</p>
               <p className="text-zinc-500 text-sm">Add an address to get started.</p>
             </div>
           ) : (
@@ -403,8 +479,8 @@ export default function AddressesPage({ onBack }:any) {
                   key={addr.id}
                   address={addr}
                   index={i}
-                  onEdit={(a:any) => setEditTarget(a)}
-                  onDelete={(id:any) => setDeleteId(id)}
+                  onEdit={(a) => setEditTarget(a)}
+                  onDelete={(id) => setDeleteId(id)}
                 />
               ))}
             </div>
@@ -412,29 +488,32 @@ export default function AddressesPage({ onBack }:any) {
         </main>
       </div>
 
-      {/* Add Dialog */}
-      <AddressDialog
+      {/* Add Modal */}
+      <AddressModal
         open={addOpen}
-        onOpenChange={setAddOpen}
+        onClose={() => setAddOpen(false)}
         initial={EMPTY_FORM}
         onSave={handleAdd}
         mode="add"
+        saving={saving}
       />
 
-      {/* Edit Dialog */}
-      <AddressDialog
+      {/* Edit Modal */}
+      <AddressModal
         open={!!editTarget}
-        onOpenChange={(v:any) => { if (!v) setEditTarget(null); }}
-        initial={editTarget}
+        onClose={() => setEditTarget(null)}
+        initial={editTarget ? addressToForm(editTarget) : EMPTY_FORM}
         onSave={handleEditSave}
         mode="edit"
+        saving={saving}
       />
 
-      {/* Delete Confirm */}
-      <DeleteDialog
+      {/* Delete Modal */}
+      <DeleteModal
         open={!!deleteId}
-        onOpenChange={(v:any) => { if (!v) setDeleteId(null); }}
+        onClose={() => setDeleteId(null)}
         onConfirm={handleDelete}
+        deleting={deleting}
       />
     </>
   );

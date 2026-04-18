@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import { Menu, Search, User, X, ChevronUp } from "lucide-react";
+import { Menu, Search, User, X, ChevronUp, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProgressiveBlur } from "../ui/progressive-blur";
 import Image from "next/image";
@@ -13,6 +13,7 @@ import { useCart } from "@/lib/store/cart";
 import { useAuth } from "@/lib/store/auth";
 import MiniCart from "./MiniCart";
 import AuthModal from "@/components/auth/AuthModal";
+import type { HttpTypes } from "@medusajs/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,118 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Community", href: "#" },
   { label: "Core", href: "#" },
 ];
+
+// ─── Region selector ─────────────────────────────────────────────────────────
+
+/** ISO-2 → emoji flag (works in all modern browsers / most terminals) */
+function countryFlag(iso2: string | undefined): string {
+  if (!iso2) return "🌐"
+  return iso2
+    .toUpperCase()
+    .split("")
+    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+    .join("")
+}
+
+function RegionSelector({ compact = false }: { compact?: boolean }) {
+  const { region, country, switchCountry } = useCart()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [open])
+
+  const countries = region?.countries ?? []
+  if (!region || countries.length === 0) return null
+
+  const flag = country ? countryFlag(country.iso_2) : "🌐"
+  const label = country?.display_name ?? country?.name ?? region.currency_code?.toUpperCase() ?? ""
+
+  if (compact) {
+    return (
+      <div className="border-t border-white/10 pt-4 mt-1">
+        <p className="text-[10px] uppercase tracking-widest text-white/30 font-body mb-3">Ship to</p>
+        <div className="flex flex-wrap gap-2">
+          {countries.map((c) => (
+            <button
+              key={c.iso_2}
+              onClick={() => { switchCountry(c.iso_2!) }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-display uppercase tracking-wider transition ${
+                c.iso_2 === country?.iso_2
+                  ? "border-white text-white bg-white/10"
+                  : "border-white/15 text-white/50 hover:text-white hover:border-white/30"
+              }`}
+            >
+              <span>{countryFlag(c.iso_2)}</span>
+              <span>{c.display_name ?? c.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 text-white/60 hover:text-white transition text-sm font-body"
+        aria-label="Select country"
+      >
+        <span className="text-base leading-none">{flag}</span>
+        <span className="text-[11px] font-display uppercase tracking-widest">{label}</span>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: [0.42, 0, 0.58, 1] }}
+            className="absolute right-0 top-full mt-3 z-50 min-w-[200px] rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl"
+          
+          >
+            <div className="px-2 py-2">
+              <p className="text-[9px] uppercase tracking-widest text-white/30 font-body px-3 pt-2 pb-1">
+                Ship to
+              </p>
+              {countries.map((c) => {
+                const isActive = c.iso_2 === country?.iso_2
+                return (
+                  <button
+                    key={c.iso_2}
+                    onClick={() => { switchCountry(c.iso_2!); setOpen(false) }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left ${
+                      isActive
+                        ? "bg-white/10 text-white"
+                        : "text-white/60 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <span className="text-lg leading-none">{countryFlag(c.iso_2)}</span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-display uppercase tracking-wide truncate">{c.display_name ?? c.name}</p>
+                      <p className="text-[10px] text-white/40 font-body">{region.currency_code?.toUpperCase()}</p>
+                    </div>
+                    {isActive && (
+                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 // ─── Active dash indicator ────────────────────────────────────────────────────
 
@@ -76,11 +189,8 @@ function NavDropdown({
     >
       {/* Outer rounded card — steel gradient matching reference */}
       <div
-        className="relative overflow-hidden rounded-2xl shadow-2xl border border-white/10 min-w-[220px]"
-        style={{
-          background:
-            "linear-gradient(160deg, #3d4b53 0%, #2c383e 40%, #1e2b30 100%)",
-        }}
+        className="relative overflow-hidden rounded-2xl bg-black shadow-2xl border border-white/10 min-w-[220px]"
+    
       >
         {/* Sections */}
         <div className="px-5 pt-5 pb-2">
@@ -231,9 +341,15 @@ export default function Navbar() {
               );
             })}
           </nav>
+          
 
           {/* Actions — right */}
           <div className="flex-1 flex justify-end items-center gap-4">
+            {/* Region selector */}
+            <div className="hidden md:flex">
+              <RegionSelector />
+            </div>
+
             {/* Search */}
             <button
               onClick={() => setSearchOpen(true)}
@@ -394,6 +510,8 @@ export default function Navbar() {
                   Sign In
                 </Button>
               </div>
+
+              <RegionSelector compact />
             </div>
           </motion.div>
         )}

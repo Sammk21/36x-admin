@@ -39,10 +39,6 @@
     "post_url": {
       "type": "string"
     },
-    "display_order": {
-      "type": "integer",
-      "default": 0
-    },
     "is_active": {
       "type": "boolean",
       "default": true

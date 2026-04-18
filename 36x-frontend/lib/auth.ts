@@ -299,6 +299,20 @@ export async function addAddress(
   return res.address
 }
 
+/** Update an address */
+export async function updateAddress(
+  token: string,
+  addressId: string,
+  payload: Partial<Omit<MedusaAddress, "id" | "is_default_shipping" | "is_default_billing">>
+): Promise<MedusaAddress> {
+  const res = await authRequest<{ address: MedusaAddress }>(
+    `/store/customers/me/addresses/${addressId}`,
+    { method: "POST", body: JSON.stringify(payload) },
+    token
+  )
+  return res.address
+}
+
 /** Delete an address */
 export async function deleteAddress(
   token: string,
